@@ -14,6 +14,8 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.SparkMaxRelativeEncoder;
 import com.revrobotics.CANSparkMax.ControlType;
 
+import java.lang.reflect.Method;
+
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.VictorSPXControlMode;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
@@ -59,6 +61,34 @@ public class SwerveDrive extends SubsystemBase {
     public SparkMaxPIDController SteerPIDController;
     public double DistToPos;
     public double DistSpdMod;
+    
+    private void initEncodersAndPIDControllers() {
+      this.SteerEncoder = this.Steer.getEncoder(SparkMaxRelativeEncoder.Type.kQuadrature, (28));
+      //SteerEncoder = Steer.getAnalog(SparkMaxAnalogSensor.AnalogMode.kAbsolute);
+      this.DriveEncoder = this.Drive.getEncoder(SparkMaxRelativeEncoder.Type.kHallSensor, (42));
+
+      // Zero relative encoders, just in case
+      this.SteerEncoder.setPosition(0);
+      this.DriveEncoder.setPosition(0);
+
+      // Purposefully set high to make PID controllers more accurate. If changed, the EncoderPosMod must be changed too. 
+      //SteerEncoder.setPositionConversionFactor(50);
+      this.SteerPIDController = this.Steer.getPIDController();
+      this.DrivePIDController = this.Drive.getPIDController();
+
+      // Set max and min values to be sent to the motors by the PID controllers. Likely shouldn't be changed.
+      this.SteerPIDController.setOutputRange(-1, 1);
+      this.DrivePIDController.setOutputRange(-1, 1);
+    }
+
+    private void setPIDValues(Double P, Double I, Double D) {
+      this.SteerPIDController.setP(P);
+      this.DrivePIDController.setP(P);
+      this.SteerPIDController.setP(I);
+      this.DrivePIDController.setP(I);
+      this.SteerPIDController.setP(D);
+      this.DrivePIDController.setP(D);
+    }
 
     public Wheel(CANSparkMax Drive, RelativeEncoder DriveEncoder, SparkMaxPIDController DrivePIDController, CANSparkMax Steer, RelativeEncoder SteerEncoder, SparkMaxPIDController PIDController, double DistToPos, double DistSpdMod) {
       this.Drive = Drive;
@@ -105,95 +135,18 @@ public class SwerveDrive extends SubsystemBase {
     BackLeft.Drive = new CANSparkMax(BLD, MotorType.kBrushless);
     BackLeft.Steer = new CANSparkMax(BLS, MotorType.kBrushed);
     
-    FrontRight.SteerEncoder = FrontRight.Steer.getEncoder(SparkMaxRelativeEncoder.Type.kQuadrature, (28));
-    FrontLeft.SteerEncoder = FrontLeft.Steer.getEncoder(SparkMaxRelativeEncoder.Type.kQuadrature, (28));
-    BackLeft.SteerEncoder = BackLeft.Steer.getEncoder(SparkMaxRelativeEncoder.Type.kQuadrature, (28));
-    BackRight.SteerEncoder = BackRight.Steer.getEncoder(SparkMaxRelativeEncoder.Type.kQuadrature, (28));
-
-    /**
-    FrontRight.SteerEncoder = FrontRight.Steer.getAnalog(SparkMaxAnalogSensor.AnalogMode.kAbsolute);
-    FrontLeft.SteerEncoder = FrontLeft.Steer.getAnalog(SparkMaxAnalogSensor.AnalogMode.kAbsolute);
-    BackLeft.SteerEncoder = BackLeft.Steer.getAnalog(SparkMaxAnalogSensor.AnalogMode.kAbsolute);
-    BackRight.SteerEncoder = BackRight.Steer.getAnalog(SparkMaxAnalogSensor.AnalogMode.kAbsolute);
-    */
-
-    FrontRight.DriveEncoder = FrontRight.Drive.getEncoder(SparkMaxRelativeEncoder.Type.kHallSensor, (42));
-    FrontLeft.DriveEncoder = FrontLeft.Drive.getEncoder(SparkMaxRelativeEncoder.Type.kHallSensor, (42));
-    BackRight.DriveEncoder = BackRight.Drive.getEncoder(SparkMaxRelativeEncoder.Type.kHallSensor, (42));
-    BackLeft.DriveEncoder = BackLeft.Drive.getEncoder(SparkMaxRelativeEncoder.Type.kHallSensor, (42));
-
-    // Zero relative encoders, just in case
-    FrontRight.SteerEncoder.setPosition(0);
-    FrontLeft.SteerEncoder.setPosition(0);
-    BackLeft.SteerEncoder.setPosition(0);
-    BackRight.SteerEncoder.setPosition(0);
-    
-    FrontRight.DriveEncoder.setPosition(0);
-    FrontLeft.DriveEncoder.setPosition(0);
-    BackRight.DriveEncoder.setPosition(0);
-    BackLeft.DriveEncoder.setPosition(0);
-
-    /**
-    // Purposefully set high to make PID controllers more accurate. If changed, the EncoderPosMod must be changed too. 
-    FrontRight.SteerEncoder.setPositionConversionFactor(50);
-    FrontLeft.SteerEncoder.setPositionConversionFactor(50);
-    BackLeft.SteerEncoder.setPositionConversionFactor(50);
-    BackRight.SteerEncoder.setPositionConversionFactor(50);
-    */
-
-    FrontRight.SteerPIDController = FrontRight.Steer.getPIDController();
-    FrontLeft.SteerPIDController = FrontLeft.Steer.getPIDController();
-    BackLeft.SteerPIDController = BackLeft.Steer.getPIDController();
-    BackRight.SteerPIDController = BackRight.Steer.getPIDController();
-
-    FrontRight.DrivePIDController = FrontRight.Drive.getPIDController();
-    FrontLeft.DrivePIDController = FrontLeft.Drive.getPIDController();
-    BackRight.DrivePIDController = BackLeft.Drive.getPIDController();
-    BackLeft.DrivePIDController = BackRight.Drive.getPIDController();
-
-    // Set max and min values to be sent to the motors by the PID controllers. Likely shouldn't be changed.
-    FrontRight.SteerPIDController.setOutputRange(-1, 1);
-    FrontLeft.SteerPIDController.setOutputRange(-1, 1);
-    BackLeft.SteerPIDController.setOutputRange(-1, 1);
-    BackRight.SteerPIDController.setOutputRange(-1, 1);
-
-    FrontRight.DrivePIDController.setOutputRange(-1, 1);
-    FrontLeft.DrivePIDController.setOutputRange(-1, 1);
-    BackLeft.DrivePIDController.setOutputRange(-1, 1);
-    BackRight.DrivePIDController.setOutputRange(-1, 1);
+    FrontRight.initEncodersAndPIDControllers();
+    FrontLeft.initEncodersAndPIDControllers();
+    BackLeft.initEncodersAndPIDControllers();
+    BackRight.initEncodersAndPIDControllers();
   }
 
   // Setup PID values. Call during robotInit(), after initMotorControllers().
   public void setPID(Double P, Double I, Double D) {
-    FrontRight.SteerPIDController.setP(P);
-    FrontLeft.SteerPIDController.setP(P);
-    BackLeft.SteerPIDController.setP(P);
-    BackRight.SteerPIDController.setP(P);
-
-    FrontRight.DrivePIDController.setP(P);
-    FrontLeft.DrivePIDController.setP(P);
-    BackLeft.DrivePIDController.setP(P);
-    BackRight.DrivePIDController.setP(P);
-
-    FrontRight.SteerPIDController.setI(I);
-    FrontLeft.SteerPIDController.setI(I);
-    BackLeft.SteerPIDController.setI(I);
-    BackRight.SteerPIDController.setI(I);
-
-    FrontRight.DrivePIDController.setI(I);
-    FrontLeft.DrivePIDController.setI(I);
-    BackLeft.DrivePIDController.setI(I);
-    BackRight.DrivePIDController.setI(I);
-
-    FrontRight.SteerPIDController.setD(D);
-    FrontLeft.SteerPIDController.setD(D);
-    BackLeft.SteerPIDController.setD(D);
-    BackRight.SteerPIDController.setD(D);
-
-    FrontRight.DrivePIDController.setD(D);
-    FrontLeft.DrivePIDController.setD(D);
-    BackLeft.DrivePIDController.setD(D);
-    BackRight.DrivePIDController.setD(D);
+    FrontRight.setPIDValues(P, I, D);
+    FrontLeft.setPIDValues(P, I, D);
+    BackLeft.setPIDValues(P, I, D);
+    BackRight.setPIDValues(P, I, D);
   }
 
   // Where the black magic happens. Call during teleopPeriodic()
