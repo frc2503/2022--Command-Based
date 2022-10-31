@@ -56,11 +56,6 @@ import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import frc.robot.subsystems.SwerveDrive.Wheel;
 import frc.robot.subsystems.SwerveDrive;
 
-/**
- * This is a demo program showing the use of the RobotDrive class, specifically
- * it contains the code
- * necessary to operate a robot with tank drive.
- */
 public class Robot extends TimedRobot {
   private Joystick LeftStick;
   private Joystick RightStick;
