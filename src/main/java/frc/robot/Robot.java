@@ -56,8 +56,6 @@ import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import frc.robot.subsystems.SwerveDrive.Wheel;
 import frc.robot.subsystems.SwerveDrive;
 
-//jalfdls
-
 /**
  * This is a demo program showing the use of the RobotDrive class, specifically
  * it contains the code
