@@ -41,12 +41,12 @@ public class SwerveDrive extends SubsystemBase {
   private AHRS ahrs;
 
   // Locations of wheel modules compared to robot center (doesn't really matter unless base is VERY rectangular)
-  private Translation2d FrontRightLocation = new Translation2d(0.381, -0.381);
-  private Translation2d FrontLeftLocation = new Translation2d(0.381, 0.381);
-  private Translation2d BackLeftLocation = new Translation2d(-0.381, -0.381);
-  private Translation2d BackRightLocation = new Translation2d(-0.381, 0.381);
+  private Translation2d FrontRightLocation;
+  private Translation2d FrontLeftLocation;
+  private Translation2d BackLeftLocation;
+  private Translation2d BackRightLocation;
 
-  SwerveDriveKinematics Kinematics = new SwerveDriveKinematics(FrontRightLocation, FrontLeftLocation, BackLeftLocation, BackRightLocation);
+  SwerveDriveKinematics Kinematics;
   SwerveDriveOdometry Odometry;
 
   private double EncoderPosMod;
@@ -59,69 +59,72 @@ public class SwerveDrive extends SubsystemBase {
     public CANSparkMax Steer;
     public RelativeEncoder SteerEncoder;
     public SparkMaxPIDController SteerPIDController;
+    public Translation2d Location;
     public double DistToPos;
     public double DistSpdMod;
     
-    private void initEncodersAndPIDControllers() {
-      this.SteerEncoder = this.Steer.getEncoder(SparkMaxRelativeEncoder.Type.kQuadrature, (28));
+    public Wheel(double ModuleLocationX, double ModuleLocationY) {
+      Location = new Translation2d(ModuleLocationX, ModuleLocationY);
+      DistToPos = 0
+      DistSpdMod = 0
+    }
+    
+    public void initEncodersAndPIDControllers() {
+      SteerEncoder = Steer.getEncoder(SparkMaxRelativeEncoder.Type.kQuadrature, 28);
       //SteerEncoder = Steer.getAnalog(SparkMaxAnalogSensor.AnalogMode.kAbsolute);
-      this.DriveEncoder = this.Drive.getEncoder(SparkMaxRelativeEncoder.Type.kHallSensor, (42));
+      DriveEncoder = Drive.getEncoder(SparkMaxRelativeEncoder.Type.kHallSensor, 42);
 
       // Zero relative encoders, just in case
-      this.SteerEncoder.setPosition(0);
-      this.DriveEncoder.setPosition(0);
+      SteerEncoder.setPosition(0);
+      DriveEncoder.setPosition(0);
 
       // Purposefully set high to make PID controllers more accurate. If changed, the EncoderPosMod must be changed too. 
       //SteerEncoder.setPositionConversionFactor(50);
-      this.SteerPIDController = this.Steer.getPIDController();
-      this.DrivePIDController = this.Drive.getPIDController();
+      SteerPIDController = Steer.getPIDController();
+      DrivePIDController = Drive.getPIDController();
 
       // Set max and min values to be sent to the motors by the PID controllers. Likely shouldn't be changed.
-      this.SteerPIDController.setOutputRange(-1, 1);
-      this.DrivePIDController.setOutputRange(-1, 1);
+      SteerPIDController.setOutputRange(-1, 1);
+      DrivePIDController.setOutputRange(-1, 1);
     }
 
-    private void setPIDValues(Double P, Double I, Double D) {
-      this.SteerPIDController.setP(P);
-      this.DrivePIDController.setP(P);
-      this.SteerPIDController.setP(I);
-      this.DrivePIDController.setP(I);
-      this.SteerPIDController.setP(D);
-      this.DrivePIDController.setP(D);
-    }
-
-    public Wheel(CANSparkMax Drive, RelativeEncoder DriveEncoder, SparkMaxPIDController DrivePIDController, CANSparkMax Steer, RelativeEncoder SteerEncoder, SparkMaxPIDController PIDController, double DistToPos, double DistSpdMod) {
-      this.Drive = Drive;
-      this.DriveEncoder = DriveEncoder;
-      this.DrivePIDController = DrivePIDController;
-      this.Steer = Steer;
-      this.SteerEncoder = SteerEncoder;
-      this.SteerPIDController = SteerPIDController;
-      this.DistToPos = DistToPos;
-      this.DistSpdMod = DistSpdMod;
+    public void setPIDValues(Double P, Double I, Double D) {
+      SteerPIDController.setP(P);
+      DrivePIDController.setP(P);
+      SteerPIDController.setP(I);
+      DrivePIDController.setP(I);
+      SteerPIDController.setP(D);
+      DrivePIDController.setP(D);
     }
   }
 
-  public Wheel FrontRight = new Wheel(null, null, null, null, null, null, 0, 0);
-  public Wheel FrontLeft = new Wheel(null, null, null, null, null, null, 0, 0);
-  public Wheel BackLeft = new Wheel(null, null, null, null, null, null, 0, 0);
-  public Wheel BackRight = new Wheel(null, null, null, null, null, null, 0, 0);
+  public Wheel FrontRight;
+  public Wheel FrontLeft;
+  public Wheel BackLeft;
+  public Wheel BackRight;
 
   // Initialize all objects which are unlikely to change
   public SwerveDrive() {
+    // Create objects for the Wheel class, and define locations of wheel modules compared to robot center, which doesn't really matter unless base is MUCH longer on one side
+    FrontRight = new Wheel(0.381, -0.381);
+    FrontLeft = new Wheel(0.381, 0.381);
+    BackLeft = new Wheel(-0.381, -0.381);
+    BackRight = new Wheel(-0.381, 0.381);
+    
+    // Define and zero gyro
     ahrs = new AHRS(I2C.Port.kMXP);
+    ahrs.calibrate();
+    ahrs.reset();
+    
+    Kinematics = new SwerveDriveKinematics(FrontRight.Location, FrontLeft.Location, BackLeft.Location, BackRight.Location);
     Odometry = new SwerveDriveOdometry(Kinematics, ahrs.getRotation2d(), new Pose2d(5.0, 13.5, new Rotation2d()));
-
+    
     /**
     Number to modify the encoders' output value.
     On relative encoders, it is used to deal with the gear ratio.
     On absoute encoders, it is used to counteract the position conversion factor, which is purposfully set high to make the PID controllers more accurate.
     */
     EncoderPosMod = (59.0 + (1.0/6.0));
-
-    // Zero gyro
-    ahrs.calibrate();
-    ahrs.reset();
   }
 
   // Assign motor controllers their CAN numbers, and setup all relating things. Call during robotInit().
@@ -183,18 +186,12 @@ public class SwerveDrive extends SubsystemBase {
     // Update Odometry
     Odometry.update(ahrs.getRotation2d(), new SwerveModuleState(FrontLeft.DriveEncoder.getVelocity(), new Rotation2d(FrontLeft.SteerEncoder.getPosition() / EncoderPosMod)), new SwerveModuleState(FrontRight.DriveEncoder.getVelocity(), new Rotation2d(FrontRight.SteerEncoder.getPosition() / EncoderPosMod)),
     new SwerveModuleState(BackLeft.DriveEncoder.getVelocity(), new Rotation2d(BackLeft.SteerEncoder.getPosition() / EncoderPosMod)), new SwerveModuleState(BackRight.DriveEncoder.getVelocity(), new Rotation2d(BackRight.SteerEncoder.getPosition() / EncoderPosMod)));
-
-    //ModuleStates = Kinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(((RightStickY * -1) * RightStickZ), (RightStickX * RightStickZ), (RightStickTwist * LeftStickZ), ahrs.getRotation2d()));
     
     // Optimize rotation positions
-    var frontLeftOptimized = SwerveModuleState.optimize(frontLeft,
-    new Rotation2d((FrontLeft.SteerEncoder.getPosition() / EncoderPosMod)));
-    var frontRightOptimized = SwerveModuleState.optimize(frontRight,
-    new Rotation2d((FrontRight.SteerEncoder.getPosition() / EncoderPosMod)));
-    var backLeftOptimized = SwerveModuleState.optimize(backLeft,
-    new Rotation2d((BackLeft.SteerEncoder.getPosition() / EncoderPosMod)));
-    var backRightOptimized = SwerveModuleState.optimize(backRight,
-    new Rotation2d((BackRight.SteerEncoder.getPosition() / EncoderPosMod)));
+    var frontLeftOptimized = SwerveModuleState.optimize(frontLeft, new Rotation2d((FrontLeft.SteerEncoder.getPosition() / EncoderPosMod)));
+    var frontRightOptimized = SwerveModuleState.optimize(frontRight, new Rotation2d((FrontRight.SteerEncoder.getPosition() / EncoderPosMod)));
+    var backLeftOptimized = SwerveModuleState.optimize(backLeft, new Rotation2d((BackLeft.SteerEncoder.getPosition() / EncoderPosMod)));
+    var backRightOptimized = SwerveModuleState.optimize(backRight, new Rotation2d((BackRight.SteerEncoder.getPosition() / EncoderPosMod)));
 
     // Find the distance to the desired wheel angle
     FrontRight.DistToPos = ((Math.abs((FrontRight.SteerEncoder.getPosition() / EncoderPosMod) - ((frontRightOptimized.angle.getDegrees() / 360.0)))));
