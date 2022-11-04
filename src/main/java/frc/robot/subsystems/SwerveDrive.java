@@ -40,12 +40,6 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 public class SwerveDrive extends SubsystemBase {
   private AHRS ahrs;
 
-  // Locations of wheel modules compared to robot center (doesn't really matter unless base is VERY rectangular)
-  private Translation2d FrontRightLocation;
-  private Translation2d FrontLeftLocation;
-  private Translation2d BackLeftLocation;
-  private Translation2d BackRightLocation;
-
   SwerveDriveKinematics Kinematics;
   SwerveDriveOdometry Odometry;
 
