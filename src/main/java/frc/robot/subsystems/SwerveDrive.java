@@ -40,8 +40,8 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 public class SwerveDrive extends SubsystemBase {
   private AHRS ahrs;
 
-  SwerveDriveKinematics Kinematics;
-  SwerveDriveOdometry Odometry;
+  private SwerveDriveKinematics Kinematics;
+  private SwerveDriveOdometry Odometry;
 
   private double EncoderPosMod;
 
