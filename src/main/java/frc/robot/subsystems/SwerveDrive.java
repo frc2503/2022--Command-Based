@@ -59,8 +59,8 @@ public class SwerveDrive extends SubsystemBase {
     
     public Wheel(double ModuleLocationX, double ModuleLocationY) {
       Location = new Translation2d(ModuleLocationX, ModuleLocationY);
-      DistToPos = 0
-      DistSpdMod = 0
+      DistToPos = 0.0;
+      DistSpdMod = 0.0;
     }
     
     public void initEncodersAndPIDControllers() {
