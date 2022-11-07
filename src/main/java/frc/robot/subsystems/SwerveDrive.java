@@ -36,6 +36,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import frc.robot.subsystems.Wheel;
 
 public class SwerveDrive extends SubsystemBase {
   private AHRS ahrs;
@@ -44,53 +45,6 @@ public class SwerveDrive extends SubsystemBase {
   private SwerveDriveOdometry Odometry;
 
   private double EncoderPosMod;
-
-  // Class to give each wheel module its own variables
-  public class Wheel {
-    public CANSparkMax Drive;
-    public RelativeEncoder DriveEncoder;
-    public SparkMaxPIDController DrivePIDController;
-    public CANSparkMax Steer;
-    public RelativeEncoder SteerEncoder;
-    public SparkMaxPIDController SteerPIDController;
-    public Translation2d Location;
-    public double DistToPos;
-    public double DistSpdMod;
-    
-    public Wheel(double ModuleLocationX, double ModuleLocationY) {
-      Location = new Translation2d(ModuleLocationX, ModuleLocationY);
-      DistToPos = 0.0;
-      DistSpdMod = 0.0;
-    }
-    
-    public void initEncodersAndPIDControllers() {
-      SteerEncoder = Steer.getEncoder(SparkMaxRelativeEncoder.Type.kQuadrature, 28);
-      //SteerEncoder = Steer.getAnalog(SparkMaxAnalogSensor.AnalogMode.kAbsolute);
-      DriveEncoder = Drive.getEncoder(SparkMaxRelativeEncoder.Type.kHallSensor, 42);
-
-      // Zero relative encoders, just in case
-      SteerEncoder.setPosition(0);
-      DriveEncoder.setPosition(0);
-
-      // Purposefully set high to make PID controllers more accurate. If changed, the EncoderPosMod must be changed too. 
-      //SteerEncoder.setPositionConversionFactor(50);
-      SteerPIDController = Steer.getPIDController();
-      DrivePIDController = Drive.getPIDController();
-
-      // Set max and min values to be sent to the motors by the PID controllers. Likely shouldn't be changed.
-      SteerPIDController.setOutputRange(-1, 1);
-      DrivePIDController.setOutputRange(-1, 1);
-    }
-
-    public void setPIDValues(Double P, Double I, Double D) {
-      SteerPIDController.setP(P);
-      DrivePIDController.setP(P);
-      SteerPIDController.setP(I);
-      DrivePIDController.setP(I);
-      SteerPIDController.setP(D);
-      DrivePIDController.setP(D);
-    }
-  }
 
   public Wheel FrontRight;
   public Wheel FrontLeft;
