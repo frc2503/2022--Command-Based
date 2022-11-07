@@ -50,8 +50,6 @@ import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
-
-import frc.robot.subsystems.SwerveDrive.Wheel;
 import frc.robot.subsystems.SwerveDrive;
 
 public class Robot extends TimedRobot {
