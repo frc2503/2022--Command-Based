@@ -68,7 +68,7 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopPeriodic() {
-    SwerveDrive.swerveDrive(RightStick.getX(), (RightStick.getY() * -1), RightStick.getRawAxis(3), (1 - ((RightStick.getZ + 1) / 2)), (1 - ((LeftStick.getZ + 1) / 2)));
+    SwerveDrive.swerveDrive(RightStick.getX(), (RightStick.getY() * -1), RightStick.getRawAxis(3), (1 - ((RightStick.getZ() + 1) / 2)), (1 - ((LeftStick.getZ() + 1) / 2)));
   }
 
   //Autonomous right away
