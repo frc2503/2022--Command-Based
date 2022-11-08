@@ -20,7 +20,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 public class RobotContainer {
   // The robot's subsystems and commands are defined here...
   private final SwerveDrive SwerveDriveSubsystem = new SwerveDrive();
-  private final Wheel WheelSubsystem = new Wheel();
+  private final Wheel WheelSubsystem = new Wheel(0, 0);
 
   private final ExampleCommand m_autoCommand = new ExampleCommand(SwerveDriveSubsystem);
 
