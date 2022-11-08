@@ -39,12 +39,15 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import frc.robot.subsystems.Wheel;
 
 public class SwerveDrive extends SubsystemBase {
-  private AHRS ahrs;
+  private AHRS Gyro;
+  private Rotation2d GyroRotation2d;
 
   private SwerveDriveKinematics Kinematics;
   private SwerveDriveOdometry Odometry;
 
   private double EncoderPosMod;
+
+  ChassisSpeeds Speeds;
 
   public Wheel FrontRight;
   public Wheel FrontLeft;
@@ -58,14 +61,16 @@ public class SwerveDrive extends SubsystemBase {
     FrontLeft = new Wheel(0.381, 0.381);
     BackLeft = new Wheel(-0.381, -0.381);
     BackRight = new Wheel(-0.381, 0.381);
+
+    Speeds = new ChassisSpeeds();
     
     // Define and zero gyro
-    ahrs = new AHRS(I2C.Port.kMXP);
-    ahrs.calibrate();
-    ahrs.reset();
+    Gyro = new AHRS(I2C.Port.kMXP);
+    Gyro.calibrate();
+    Gyro.reset();
     
     Kinematics = new SwerveDriveKinematics(FrontRight.Location, FrontLeft.Location, BackLeft.Location, BackRight.Location);
-    Odometry = new SwerveDriveOdometry(Kinematics, ahrs.getRotation2d(), new Pose2d(5.0, 13.5, new Rotation2d()));
+    Odometry = new SwerveDriveOdometry(Kinematics, Gyro.getRotation2d(), new Pose2d(5.0, 13.5, new Rotation2d()));
     
     /**
     Number to modify the encoders' output value.
@@ -112,12 +117,15 @@ public class SwerveDrive extends SubsystemBase {
     if (Math.abs(RST) < 0.15) {
       RST = 0.0;
     }
+
+    // Need to set the gyro angle to a variable in order to invert the output
+    GyroRotation2d = Gyro.getRotation2d();
     
     // Set ChassisSpeeds for actual movement
-    ChassisSpeeds speeds = new ChassisSpeeds(((RSY * -1) * (1 - ((RSZ + 1) / 2))), (RSX * (1 - ((RSZ + 1) / 2))), (RST * (1 - ((LSZ + 1) / 2))));
+    Speeds = ChassisSpeeds.fromFieldRelativeSpeeds(((RSY * -1) * (1 - ((RSZ + 1) / 2))), (RSX * (1 - ((RSZ + 1) / 2))), (RST * (1 - ((LSZ + 1) / 2))), GyroRotation2d.unaryMinus());
 
     // Convert to module states
-    SwerveModuleState[] ModuleStates = Kinematics.toSwerveModuleStates(speeds);
+    SwerveModuleState[] ModuleStates = Kinematics.toSwerveModuleStates(Speeds);
 
     // Front left module state
     SwerveModuleState frontLeft = ModuleStates[0];
@@ -132,7 +140,7 @@ public class SwerveDrive extends SubsystemBase {
     SwerveModuleState backRight = ModuleStates[3];
 
     // Update Odometry
-    Odometry.update(ahrs.getRotation2d(),
+    Odometry.update(GyroRotation2d.unaryMinus(),
     new SwerveModuleState(FrontLeft.DriveEncoder.getVelocity(), new Rotation2d(FrontLeft.SteerEncoder.getPosition() / EncoderPosMod)),
     new SwerveModuleState(FrontRight.DriveEncoder.getVelocity(), new Rotation2d(FrontRight.SteerEncoder.getPosition() / EncoderPosMod)),
     new SwerveModuleState(BackLeft.DriveEncoder.getVelocity(), new Rotation2d(BackLeft.SteerEncoder.getPosition() / EncoderPosMod)),
