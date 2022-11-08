@@ -122,7 +122,7 @@ public class SwerveDrive extends SubsystemBase {
     GyroRotation2d = Gyro.getRotation2d();
     
     // Set ChassisSpeeds for actual movement
-    Speeds = ChassisSpeeds.fromFieldRelativeSpeeds(((RSY * -1) * (1 - ((RSZ + 1) / 2))), (RSX * (1 - ((RSZ + 1) / 2))), (RST * (1 - ((LSZ + 1) / 2))), GyroRotation2d.unaryMinus());
+    Speeds = ChassisSpeeds.fromFieldRelativeSpeeds(((RSY * RSZ), (RSX * RSZ), (RST * LSZ)), GyroRotation2d.unaryMinus());
 
     // Convert to module states
     SwerveModuleState[] ModuleStates = Kinematics.toSwerveModuleStates(Speeds);
