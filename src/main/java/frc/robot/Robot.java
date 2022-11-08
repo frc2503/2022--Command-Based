@@ -63,7 +63,7 @@ public class Robot extends TimedRobot {
     LeftStick = new Joystick(1);
     RightStick = new Joystick(2);
     SwerveDrive.initMotorControllers(1, 5, 2, 6, 3, 7, 4, 8);
-    SwerveDrive.setPID(1.0, 0.0, 0.0);
+    SwerveDrive.setPID(1.0, 1.0, 1.0);
   }
 
   @Override
