@@ -55,6 +55,9 @@ import frc.robot.subsystems.SwerveDrive;
 public class Robot extends TimedRobot {
   private Joystick LeftStick;
   private Joystick RightStick;
+  private Double RightStickX;
+  private Double RightStickY;
+  private Double RightStickTwist;
   public SwerveDrive SwerveDrive;
 
   @Override
@@ -70,17 +73,17 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
     // Deadzones
-    if (Math.abs(RSX) < 0.1) {
-      RSX = 0.0;
+    if (Math.abs(RightStick.getX()) < 0.1) {
+      RightStickX = 0.0;
     }
-    if (Math.abs(RSY) < 0.1) {
-      RSY = 0.0;
+    if (Math.abs(RightStick.getY()) < 0.1) {
+      RightStickY = 0.0;
     }
-    if (Math.abs(RST) < 0.15) {
-      RST = 0.0;
+    if (Math.abs(RightStick.getRawAxis(3)) < 0.15) {
+      RightStickTwist = 0.0
     }
 
-    SwerveDrive.swerveDrive(RightStick.getX(), (RightStick.getY() * -1), RightStick.getRawAxis(3), (1 - ((RightStick.getZ() + 1) / 2)), (1 - ((LeftStick.getZ() + 1) / 2)));
+    SwerveDrive.swerveDrive(RightStickX, (RightStickY * -1), RightStickTwist, (1 - ((RightStick.getZ() + 1) / 2)), (1 - ((LeftStick.getZ() + 1) / 2)));
   }
 
   //Autonomous right away
