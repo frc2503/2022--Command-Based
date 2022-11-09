@@ -55,13 +55,14 @@ import frc.robot.subsystems.SwerveDrive;
 public class Robot extends TimedRobot {
   private Joystick LeftStick;
   private Joystick RightStick;
-  SwerveDrive SwerveDrive = new SwerveDrive();
+  public SwerveDrive SwerveDrive;
 
   @Override
   public void robotInit() {
     CameraServer.startAutomaticCapture();
     LeftStick = new Joystick(1);
     RightStick = new Joystick(2);
+    SwerveDrive = new SwerveDrive();
     SwerveDrive.initMotorControllers(1, 5, 2, 6, 3, 7, 4, 8);
     SwerveDrive.setPID(1.0, 1.0, 1.0, 1.0, 1.0, 1.0);
   }
