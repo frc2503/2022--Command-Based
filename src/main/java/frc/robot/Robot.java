@@ -80,7 +80,7 @@ public class Robot extends TimedRobot {
       RightStickY = 0.0;
     }
     if (Math.abs(RightStick.getRawAxis(3)) < 0.15) {
-      RightStickTwist = 0.0
+      RightStickTwist = 0.0;
     }
 
     SwerveDrive.swerveDrive(RightStickX, (RightStickY * -1), RightStickTwist, (1 - ((RightStick.getZ() + 1) / 2)), (1 - ((LeftStick.getZ() + 1) / 2)));
