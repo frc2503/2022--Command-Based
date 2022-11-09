@@ -16,6 +16,8 @@ import com.revrobotics.CANSparkMax.ControlType;
 
 import java.lang.reflect.Method;
 
+import javax.swing.plaf.synth.SynthSpinnerUI;
+
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.VictorSPXControlMode;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
@@ -109,7 +111,7 @@ public class SwerveDrive extends SubsystemBase {
   public void swerveDrive(Double RSX, Double RSY, Double RST, Double RSZ, Double LSZ) {
     // Need to set the gyro angle to a variable in order to invert the output
     GyroRotation2d = Gyro.getRotation2d();
-    
+
     // Set ChassisSpeeds for actual movement
     Speeds = ChassisSpeeds.fromFieldRelativeSpeeds((RSY * RSZ), (RSX * RSZ), (RST * LSZ), GyroRotation2d.unaryMinus());
 
@@ -170,12 +172,11 @@ public class SwerveDrive extends SubsystemBase {
     FrontLeft.Drive.set((frontLeftOptimized.speedMetersPerSecond / 2) * FrontLeft.DistSpdMod);
     BackLeft.Drive.set((backLeftOptimized.speedMetersPerSecond / 2) * BackLeft.DistSpdMod);
     BackRight.Drive.set((backRightOptimized.speedMetersPerSecond / 2) * BackRight.DistSpdMod);
-
-    /**
-    FrontRight.DrivePIDController.setReference((((frontRightOptimized.speedMetersPerSecond * 5000) / 2) * FrontRight.DistSpdMod), ControlType.kSmartVelocity);
-    FrontLeft.DrivePIDController.setReference((((frontLeftOptimized.speedMetersPerSecond * 5000) / 2) * FrontLeft.DistSpdMod), ControlType.kSmartVelocity);
-    BackLeft.DrivePIDController.setReference((((backLeftOptimized.speedMetersPerSecond * 5000) / 2) * BackLeft.DistSpdMod), ControlType.kSmartVelocity);
-    BackRight.DrivePIDController.setReference((((backRightOptimized.speedMetersPerSecond * 5000) / 2) * BackRight.DistSpdMod), ControlType.kSmartVelocity);
-    */
+    
+    //FrontRight.DrivePIDController.setReference((((frontRightOptimized.speedMetersPerSecond * 5000) / 2) * FrontRight.DistSpdMod), ControlType.kVelocity);
+    //FrontLeft.DrivePIDController.setReference((((frontLeftOptimized.speedMetersPerSecond * 5000) / 2) * FrontLeft.DistSpdMod), ControlType.kVelocity);
+    //BackLeft.DrivePIDController.setReference((((backLeftOptimized.speedMetersPerSecond * 5000) / 2) * BackLeft.DistSpdMod), ControlType.kVelocity);
+    //BackRight.DrivePIDController.setReference((((backRightOptimized.speedMetersPerSecond * 5000) / 2) * BackRight.DistSpdMod), ControlType.kVelocity);
+    
   }
 }

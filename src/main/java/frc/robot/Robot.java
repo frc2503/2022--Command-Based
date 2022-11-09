@@ -72,14 +72,18 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopPeriodic() {
+    RightStickX = RightStick.getX();
+    RightStickY = RightStick.getY();
+    RightStickTwist = RightStick.getRawAxis(3);
+
     // Deadzones
-    if (Math.abs(RightStick.getX()) < 0.1) {
+    if (Math.abs(RightStickX) < 0.1) {
       RightStickX = 0.0;
     }
-    if (Math.abs(RightStick.getY()) < 0.1) {
+    if (Math.abs(RightStickY) < 0.1) {
       RightStickY = 0.0;
     }
-    if (Math.abs(RightStick.getRawAxis(3)) < 0.15) {
+    if (Math.abs(RightStickTwist) < 0.15) {
       RightStickTwist = 0.0;
     }
 
