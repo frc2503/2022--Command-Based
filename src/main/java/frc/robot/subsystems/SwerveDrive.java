@@ -107,17 +107,6 @@ public class SwerveDrive extends SubsystemBase {
 
   // Where the black magic happens. Call during teleopPeriodic()
   public void swerveDrive(Double RSX, Double RSY, Double RST, Double RSZ, Double LSZ) {
-    // Deadzones
-    if (Math.abs(RSX) < 0.1) {
-      RSX = 0.0;
-    }
-    if (Math.abs(RSY) < 0.1) {
-      RSY = 0.0;
-    }
-    if (Math.abs(RST) < 0.15) {
-      RST = 0.0;
-    }
-
     // Need to set the gyro angle to a variable in order to invert the output
     GyroRotation2d = Gyro.getRotation2d();
     
