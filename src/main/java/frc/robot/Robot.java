@@ -69,6 +69,17 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopPeriodic() {
+    // Deadzones
+    if (Math.abs(RSX) < 0.1) {
+      RSX = 0.0;
+    }
+    if (Math.abs(RSY) < 0.1) {
+      RSY = 0.0;
+    }
+    if (Math.abs(RST) < 0.15) {
+      RST = 0.0;
+    }
+
     SwerveDrive.swerveDrive(RightStick.getX(), (RightStick.getY() * -1), RightStick.getRawAxis(3), (1 - ((RightStick.getZ() + 1) / 2)), (1 - ((LeftStick.getZ() + 1) / 2)));
   }
 
