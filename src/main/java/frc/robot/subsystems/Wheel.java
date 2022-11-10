@@ -38,14 +38,15 @@ public class Wheel extends SubsystemBase {
   public Translation2d Location;
   public double DistToPos;
   public double DistSpdMod;
-  public double PreviousRampedWheelSpeed;
-  public double RampedWheelSpeed;
+  public double PrevRampedWheelSpd;
+  public double RampedWheelSpd;
 
   public Wheel(double ModuleLocationX, double ModuleLocationY) {
     Location = new Translation2d(ModuleLocationX, ModuleLocationY);
     DistToPos = 0.0;
     DistSpdMod = 0.0;
-    RampedWheelSpeed = 0.0;
+    PrevRampedWheelSpd = 0.0;
+    RampedWheelSpd = 0.0;
   }
 
   public void initEncodersAndPIDControllers() {
