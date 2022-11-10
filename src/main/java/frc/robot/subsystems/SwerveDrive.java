@@ -161,46 +161,46 @@ public class SwerveDrive extends SubsystemBase {
     BackLeft.DistSpdMod = Math.pow(BackLeft.DistToPos, 5);
     BackRight.DistSpdMod = Math.pow(BackRight.DistToPos, 5);
     
-    FrontRight.PreviousRampedWheelSpeed = FrontRight.RampedWheelSpeed
-    FrontLeft.PreviousRampedWheelSpeed = FrontLeft.RampedWheelSpeed
-    BackLeft.PreviousRampedWheelSpeed = BackLeft.RampedWheelSpeed
-    BackRight.PreviousRampedWheelSpeed = BackRight.RampedWheelSpeed
+    FrontRight.PrevRampedWheelSpd = FrontRight.RampedWheelSpd
+    FrontLeft.PrevRampedWheelSpd = FrontLeft.RampedWheelSpd
+    BackLeft.PrevRampedWheelSpd = BackLeft.RampedWheelSpd
+    BackRight.PrevRampedWheelSpd = BackRight.RampedWheelSpd
       
-    FrontRight.RampedWheelSpeed = (((frontRightOptimized.speedMetersPerSecond * 5700) / 2) * FrontRight.DistSpdMod)
-    FrontLeft.RampedWheelSpeed = (((frontLeftOptimized.speedMetersPerSecond * 5700) / 2) * FrontLeft.DistSpdMod)
-    BackLeft.RampedWheelSpeed = (((backLeftOptimized.speedMetersPerSecond * 5700) / 2) * BackLeft.DistSpdMod)
-    BackRight.RampedWheelSpeed = (((backRightOptimized.speedMetersPerSecond * 5700) / 2) * BackRight.DistSpdMod)
+    FrontRight.RampedWheelSpd = (((frontRightOptimized.speedMetersPerSecond * 5700) / 2) * FrontRight.DistSpdMod)
+    FrontLeft.RampedWheelSpd = (((frontLeftOptimized.speedMetersPerSecond * 5700) / 2) * FrontLeft.DistSpdMod)
+    BackLeft.RampedWheelSpd = (((backLeftOptimized.speedMetersPerSecond * 5700) / 2) * BackLeft.DistSpdMod)
+    BackRight.RampedWheelSpd = (((backRightOptimized.speedMetersPerSecond * 5700) / 2) * BackRight.DistSpdMod)
     
-    if (Math.abs(FrontRight.RampedWheelSpeed - FrontRight.PreviousRampedWheelSpeed) > 100) {
-      if ((FrontRight.RampedWheelSpeed - FrontRight.PreviousRampedWheelSpeed) > 0) {
-        FrontRight.RampedWheelSpeed = (FrontRight.PreviousRampedWheelSpeed + 100)
+    if (Math.abs(FrontRight.RampedWheelSpd - FrontRight.PrevRampedWheelSpd) > 100) {
+      if ((FrontRight.RampedWheelSpd - FrontRight.PrevRampedWheelSpd) > 0) {
+        FrontRight.RampedWheelSpd = (FrontRight.PrevRampedWheelSpd + 100)
       }
-      if ((FrontRight.RampedWheelSpeed - FrontRight.PreviousRampedWheelSpeed) < 0) {
-        FrontRight.RampedWheelSpeed = (FrontRight.PreviousRampedWheelSpeed - 100)
-      }
-    }
-    if (Math.abs(FrontLeft.RampedWheelSpeed - FrontLeft.PreviousRampedWheelSpeed) > 100) {
-      if ((FrontLeft.RampedWheelSpeed - FrontLeft.PreviousRampedWheelSpeed) > 0) {
-        FrontLeft.RampedWheelSpeed = (FrontLeft.PreviousRampedWheelSpeed + 100)
-      }
-      if ((FrontLeft.RampedWheelSpeed - FrontLeft.PreviousRampedWheelSpeed) < 0) {
-        FrontLeft.RampedWheelSpeed = (FrontLeft.PreviousRampedWheelSpeed - 100)
+      if ((FrontRight.RampedWheelSpd - FrontRight.PrevRampedWheelSpd) < 0) {
+        FrontRight.RampedWheelSpd = (FrontRight.PrevRampedWheelSpd - 100)
       }
     }
-    if (Math.abs(BackLeft.RampedWheelSpeed - BackLeft.PreviousRampedWheelSpeed) > 100) {
-      if ((BackLeft.RampedWheelSpeed - BackLeft.PreviousRampedWheelSpeed) > 0) {
-        BackLeft.RampedWheelSpeed = (BackLeft.PreviousRampedWheelSpeed + 100)
+    if (Math.abs(FrontLeft.RampedWheelSpd - FrontLeft.PrevRampedWheelSpd) > 100) {
+      if ((FrontLeft.RampedWheelSpd - FrontLeft.PrevRampedWheelSpd) > 0) {
+        FrontLeft.RampedWheelSpd = (FrontLeft.PrevRampedWheelSpd + 100)
       }
-      if ((BackLeft.RampedWheelSpeed - BackLeft.PreviousRampedWheelSpeed) < 0) {
-        BackLeft.RampedWheelSpeed = (BackLeft.PreviousRampedWheelSpeed - 100)
+      if ((FrontLeft.RampedWheelSpd - FrontLeft.PrevRampedWheelSpd) < 0) {
+        FrontLeft.RampedWheelSpd = (FrontLeft.PrevRampedWheelSpd - 100)
       }
     }
-    if (Math.abs(BackRight.RampedWheelSpeed - BackRight.PreviousRampedWheelSpeed) > 100) {
-      if ((FrontRight.RampedWheelSpeed - BackRight.PreviousRampedWheelSpeed) > 0) {
-        BackRight.RampedWheelSpeed = (BackRight.PreviousRampedWheelSpeed + 100)
+    if (Math.abs(BackLeft.RampedWheelSpd - BackLeft.PrevRampedWheelSpd) > 100) {
+      if ((BackLeft.RampedWheelSpd - BackLeft.PrevRampedWheelSpd) > 0) {
+        BackLeft.RampedWheelSpd = (BackLeft.PrevRampedWheelSpd + 100)
       }
-      if ((BackRight.RampedWheelSpeed - BackRight.PreviousRampedWheelSpeed) < 0) {
-        BackRight.RampedWheelSpeed = (BackRight.PreviousRampedWheelSpeed - 100)
+      if ((BackLeft.RampedWheelSpd - BackLeft.PrevRampedWheelSpd) < 0) {
+        BackLeft.RampedWheelSpd = (BackLeft.PrevRampedWheelSpd - 100)
+      }
+    }
+    if (Math.abs(BackRight.RampedWheelSpd - BackRight.PrevRampedWheelSpd) > 100) {
+      if ((BackRight.RampedWheelSpd - BackRight.PrevRampedWheelSpd) > 0) {
+        BackRight.RampedWheelSpd = (BackRight.PrevRampedWheelSpd + 100)
+      }
+      if ((BackRight.RampedWheelSpd - BackRight.PrevRampedWheelSpd) < 0) {
+        BackRight.RampedWheelSpd = (BackRight.PrevRampedWheelSpd - 100)
       }
     }
 
@@ -216,10 +216,10 @@ public class SwerveDrive extends SubsystemBase {
     //BackLeft.Drive.set((backLeftOptimized.speedMetersPerSecond / 2) * BackLeft.DistSpdMod);
     //BackRight.Drive.set((backRightOptimized.speedMetersPerSecond / 2) * BackRight.DistSpdMod);
     
-    FrontRight.DrivePIDController.setReference(FrontRight.RampedWheelSpeed, ControlType.kVelocity);
-    FrontLeft.DrivePIDController.setReference(FrontLeft.RampedWheelSpeed, ControlType.kVelocity);
-    BackLeft.DrivePIDController.setReference(BackLeft.RampedWheelSpeed, ControlType.kVelocity);
-    BackRight.DrivePIDController.setReference(BackRight.RampedWheelSpeed, ControlType.kVelocity);
+    FrontRight.DrivePIDController.setReference(FrontRight.RampedWheelSpd, ControlType.kVelocity);
+    FrontLeft.DrivePIDController.setReference(FrontLeft.RampedWheelSpd, ControlType.kVelocity);
+    BackLeft.DrivePIDController.setReference(BackLeft.RampedWheelSpd, ControlType.kVelocity);
+    BackRight.DrivePIDController.setReference(BackRight.RampedWheelSpd, ControlType.kVelocity);
     
   }
 }
