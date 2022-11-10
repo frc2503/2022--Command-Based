@@ -69,12 +69,9 @@ public class Wheel extends SubsystemBase {
     DrivePIDController.setOutputRange(-1, 1);
   }
 
-  public void setPIDValues(Double PD, Double PS, Double ID, Double IS, Double DD, Double DS) {
-    DrivePIDController.setP(PD);
-    SteerPIDController.setP(PS);
-    DrivePIDController.setI(ID);
-    SteerPIDController.setI(IS);
-    DrivePIDController.setD(DD);
-    SteerPIDController.setD(DS);
+  public void setPIDValues(Double P, Double I, Double D) {
+    SteerPIDController.setP(P);
+    SteerPIDController.setI(I);
+    SteerPIDController.setD(D);
   }
 }
