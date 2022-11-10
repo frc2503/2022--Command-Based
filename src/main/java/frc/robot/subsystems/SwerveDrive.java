@@ -220,6 +220,5 @@ public class SwerveDrive extends SubsystemBase {
     FrontLeft.DrivePIDController.setReference(FrontLeft.RampedWheelSpd, ControlType.kVelocity);
     BackLeft.DrivePIDController.setReference(BackLeft.RampedWheelSpd, ControlType.kVelocity);
     BackRight.DrivePIDController.setReference(BackRight.RampedWheelSpd, ControlType.kVelocity);
-    
   }
 }
