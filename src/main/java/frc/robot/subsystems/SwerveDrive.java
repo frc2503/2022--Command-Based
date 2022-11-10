@@ -179,6 +179,30 @@ public class SwerveDrive extends SubsystemBase {
         FrontRight.RampedWheelSpeed = (FrontRight.PreviousRampedWheelSpeed - 100)
       }
     }
+    if (Math.abs(FrontLeft.RampedWheelSpeed - FrontLeft.PreviousRampedWheelSpeed) > 100) {
+      if ((FrontLeft.RampedWheelSpeed - FrontLeft.PreviousRampedWheelSpeed) > 0) {
+        FrontLeft.RampedWheelSpeed = (FrontLeft.PreviousRampedWheelSpeed + 100)
+      }
+      if ((FrontLeft.RampedWheelSpeed - FrontLeft.PreviousRampedWheelSpeed) < 0) {
+        FrontLeft.RampedWheelSpeed = (FrontLeft.PreviousRampedWheelSpeed - 100)
+      }
+    }
+    if (Math.abs(BackLeft.RampedWheelSpeed - BackLeft.PreviousRampedWheelSpeed) > 100) {
+      if ((BackLeft.RampedWheelSpeed - BackLeft.PreviousRampedWheelSpeed) > 0) {
+        BackLeft.RampedWheelSpeed = (BackLeft.PreviousRampedWheelSpeed + 100)
+      }
+      if ((BackLeft.RampedWheelSpeed - BackLeft.PreviousRampedWheelSpeed) < 0) {
+        BackLeft.RampedWheelSpeed = (BackLeft.PreviousRampedWheelSpeed - 100)
+      }
+    }
+    if (Math.abs(BackRight.RampedWheelSpeed - BackRight.PreviousRampedWheelSpeed) > 100) {
+      if ((FrontRight.RampedWheelSpeed - BackRight.PreviousRampedWheelSpeed) > 0) {
+        BackRight.RampedWheelSpeed = (BackRight.PreviousRampedWheelSpeed + 100)
+      }
+      if ((BackRight.RampedWheelSpeed - BackRight.PreviousRampedWheelSpeed) < 0) {
+        BackRight.RampedWheelSpeed = (BackRight.PreviousRampedWheelSpeed - 100)
+      }
+    }
 
     // Actually tell the wheel to turn to the correct position
     FrontRight.SteerPIDController.setReference(((frontRightOptimized.angle.getDegrees() / 360.0) * EncoderPosMod), ControlType.kPosition);
@@ -193,9 +217,9 @@ public class SwerveDrive extends SubsystemBase {
     //BackRight.Drive.set((backRightOptimized.speedMetersPerSecond / 2) * BackRight.DistSpdMod);
     
     FrontRight.DrivePIDController.setReference(FrontRight.RampedWheelSpeed, ControlType.kVelocity);
-    FrontLeft.DrivePIDController.setReference((((frontLeftOptimized.speedMetersPerSecond * 5700) / 2) * FrontLeft.DistSpdMod), ControlType.kVelocity);
-    BackLeft.DrivePIDController.setReference((((backLeftOptimized.speedMetersPerSecond * 5700) / 2) * BackLeft.DistSpdMod), ControlType.kVelocity);
-    BackRight.DrivePIDController.setReference((((backRightOptimized.speedMetersPerSecond * 5700) / 2) * BackRight.DistSpdMod), ControlType.kVelocity);
+    FrontLeft.DrivePIDController.setReference(FrontLeft.RampedWheelSpeed, ControlType.kVelocity);
+    BackLeft.DrivePIDController.setReference(BackLeft.RampedWheelSpeed, ControlType.kVelocity);
+    BackRight.DrivePIDController.setReference(BackRight.RampedWheelSpeed, ControlType.kVelocity);
     
   }
 }
