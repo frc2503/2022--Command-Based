@@ -48,6 +48,7 @@ public class SwerveDrive extends SubsystemBase {
   private SwerveDriveOdometry Odometry;
 
   private double EncoderPosMod;
+  private double DriveRampValue;
 
   ChassisSpeeds Speeds;
 
@@ -80,6 +81,8 @@ public class SwerveDrive extends SubsystemBase {
     On absoute encoders, it is used to counteract the position conversion factor, which is purposfully set high to make the PID controllers more accurate.
     */
     EncoderPosMod = (59.0 + (1.0/6.0));
+
+    DriveRampValue = .02;
   }
 
   // Assign motor controllers their CAN numbers, and setup all relating things. Call during robotInit().
@@ -171,36 +174,36 @@ public class SwerveDrive extends SubsystemBase {
     BackLeft.RampedWheelSpd = ((backLeftOptimized.speedMetersPerSecond / 2) * BackLeft.DistSpdMod);
     BackRight.RampedWheelSpd = ((backRightOptimized.speedMetersPerSecond / 2) * BackRight.DistSpdMod);
     
-    if (Math.abs(FrontRight.RampedWheelSpd - FrontRight.PrevRampedWheelSpd) > .02) {
+    if (Math.abs(FrontRight.RampedWheelSpd - FrontRight.PrevRampedWheelSpd) > DriveRampValue) {
       if ((FrontRight.RampedWheelSpd - FrontRight.PrevRampedWheelSpd) > 0) {
-        FrontRight.RampedWheelSpd = (FrontRight.PrevRampedWheelSpd + .02);
+        FrontRight.RampedWheelSpd = (FrontRight.PrevRampedWheelSpd + DriveRampValue);
       }
       if ((FrontRight.RampedWheelSpd - FrontRight.PrevRampedWheelSpd) < 0) {
-        FrontRight.RampedWheelSpd = (FrontRight.PrevRampedWheelSpd - .02);
+        FrontRight.RampedWheelSpd = (FrontRight.PrevRampedWheelSpd - DriveRampValue);
       }
     }
-    if (Math.abs(FrontLeft.RampedWheelSpd - FrontLeft.PrevRampedWheelSpd) > .02) {
+    if (Math.abs(FrontLeft.RampedWheelSpd - FrontLeft.PrevRampedWheelSpd) > DriveRampValue) {
       if ((FrontLeft.RampedWheelSpd - FrontLeft.PrevRampedWheelSpd) > 0) {
-        FrontLeft.RampedWheelSpd = (FrontLeft.PrevRampedWheelSpd + .02);
+        FrontLeft.RampedWheelSpd = (FrontLeft.PrevRampedWheelSpd + DriveRampValue);
       }
       if ((FrontLeft.RampedWheelSpd - FrontLeft.PrevRampedWheelSpd) < 0) {
-        FrontLeft.RampedWheelSpd = (FrontLeft.PrevRampedWheelSpd - .02);
+        FrontLeft.RampedWheelSpd = (FrontLeft.PrevRampedWheelSpd - DriveRampValue);
       }
     }
-    if (Math.abs(BackLeft.RampedWheelSpd - BackLeft.PrevRampedWheelSpd) > .02) {
+    if (Math.abs(BackLeft.RampedWheelSpd - BackLeft.PrevRampedWheelSpd) > DriveRampValue) {
       if ((BackLeft.RampedWheelSpd - BackLeft.PrevRampedWheelSpd) > 0) {
-        BackLeft.RampedWheelSpd = (BackLeft.PrevRampedWheelSpd + .02);
+        BackLeft.RampedWheelSpd = (BackLeft.PrevRampedWheelSpd + DriveRampValue);
       }
       if ((BackLeft.RampedWheelSpd - BackLeft.PrevRampedWheelSpd) < 0) {
-        BackLeft.RampedWheelSpd = (BackLeft.PrevRampedWheelSpd - .02);
+        BackLeft.RampedWheelSpd = (BackLeft.PrevRampedWheelSpd - DriveRampValue);
       }
     }
-    if (Math.abs(BackRight.RampedWheelSpd - BackRight.PrevRampedWheelSpd) > .02) {
+    if (Math.abs(BackRight.RampedWheelSpd - BackRight.PrevRampedWheelSpd) > DriveRampValue) {
       if ((BackRight.RampedWheelSpd - BackRight.PrevRampedWheelSpd) > 0) {
-        BackRight.RampedWheelSpd = (BackRight.PrevRampedWheelSpd + .02);
+        BackRight.RampedWheelSpd = (BackRight.PrevRampedWheelSpd + DriveRampValue);
       }
       if ((BackRight.RampedWheelSpd - BackRight.PrevRampedWheelSpd) < 0) {
-        BackRight.RampedWheelSpd = (BackRight.PrevRampedWheelSpd - .02);
+        BackRight.RampedWheelSpd = (BackRight.PrevRampedWheelSpd - DriveRampValue);
       }
     }
 
