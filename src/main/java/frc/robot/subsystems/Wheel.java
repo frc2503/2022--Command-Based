@@ -38,6 +38,7 @@ public class Wheel extends SubsystemBase {
   public Translation2d Location;
   public double DistToPos;
   public double DistSpdMod;
+  public double RampedWheelSpeed;
 
   public Wheel(double ModuleLocationX, double ModuleLocationY) {
     Location = new Translation2d(ModuleLocationX, ModuleLocationY);
