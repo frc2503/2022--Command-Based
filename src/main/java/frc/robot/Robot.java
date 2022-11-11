@@ -53,6 +53,7 @@ import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import frc.robot.subsystems.SwerveDrive;
 
 public class Robot extends TimedRobot {
+  // Define objects and variables
   private Joystick LeftStick;
   private Joystick RightStick;
   private Double RightStickX;
