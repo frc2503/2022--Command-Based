@@ -40,7 +40,12 @@ import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import frc.robot.subsystems.Wheel;
 
+/**
+Class to hold all code for the swerve drive
+Mostly exists to prevent people from accidentally messing the code up
+*/
 public class SwerveDrive extends SubsystemBase {
+  // Define all objects and varibles used by this class
   private AHRS Gyro;
   private Rotation2d GyroRotation2d;
 
@@ -57,7 +62,7 @@ public class SwerveDrive extends SubsystemBase {
   public Wheel BackLeft;
   public Wheel BackRight;
 
-  // Initialize all objects which are unlikely to change
+  // Class constructor, initializes all objects and variables for the created object
   public SwerveDrive() {
     // Create objects for the Wheel class, and define locations of wheel modules compared to robot center, which doesn't really matter unless base is MUCH longer on one side
     FrontRight = new Wheel(0.381, -0.381);
@@ -65,15 +70,21 @@ public class SwerveDrive extends SubsystemBase {
     BackLeft = new Wheel(-0.381, -0.381);
     BackRight = new Wheel(-0.381, 0.381);
 
+    // Create a ChassisSpeeds object, which we later pass our desired speeds into to get our wheel speeds and angles
     Speeds = new ChassisSpeeds();
     
-    // Define and zero gyro
+    // Initialize and zero gyro
     Gyro = new AHRS(I2C.Port.kMXP);
     Gyro.calibrate();
     Gyro.reset();
     
+    // Pass in locations of wheels relative to the center of the robot
+    // These are later used in the backend, likely to find the angles the wheels need to rotate to when the robot spins 
     Kinematics = new SwerveDriveKinematics(FrontRight.Location, FrontLeft.Location, BackLeft.Location, BackRight.Location);
-    Odometry = new SwerveDriveOdometry(Kinematics, Gyro.getRotation2d(), new Pose2d(5.0, 13.5, new Rotation2d()));
+    
+    // Pass in wheel module locations, as well as robot angle and position for field oriented drive
+    // The robot position is unused for now, but might be utilized in autonomous later
+    Odometry = new SwerveDriveOdometry(Kinematics, Gyro.getRotation2d(), new Pose2d(0, 0, Gyro.getRotation2d()));
     
     /**
     Number to modify the encoders' output value.
@@ -82,10 +93,13 @@ public class SwerveDrive extends SubsystemBase {
     */
     EncoderPosMod = (59.0 + (1.0/6.0));
 
+    // Amount the drive speed can increas or decrease by, max value of 1, min value of 0
+    // Purposefully set very low because of how quickly the code runs
     DriveRampValue = .02;
   }
 
-  // Assign motor controllers their CAN numbers, and setup all relating things. Call during robotInit().
+  // Assign motor controllers their CAN numbers, and call the initEncodersAndPIDControllers() method for each wheel module
+  // Call during robotInit().
   public void initMotorControllers(Integer FRD, Integer FRS, Integer FLD, Integer FLS, Integer BLD, Integer BLS, Integer BRD, Integer BRS) {
     FrontRight.Drive = new CANSparkMax(FRD, MotorType.kBrushless);
     FrontRight.Steer = new CANSparkMax(FRS, MotorType.kBrushed);
@@ -102,7 +116,8 @@ public class SwerveDrive extends SubsystemBase {
     BackRight.initEncodersAndPIDControllers();
   }
 
-  // Setup PID values. Call during robotInit(), after initMotorControllers().
+  // Call the setPIDValues() method for each wheel module, pass in the desired P, I, and D values
+  // Call during robotInit(), after initMotorControllers().
   public void setPID(Double P, Double I, Double D) {
     FrontRight.setPIDValues(P, I, D);
     FrontLeft.setPIDValues(P, I, D);
@@ -110,7 +125,8 @@ public class SwerveDrive extends SubsystemBase {
     BackRight.setPIDValues(P, I, D);
   }
 
-  // Where the black magic happens. Call during teleopPeriodic()
+  // This method does all of the math for the swerve drive, pass in the desired controller inputs
+  // Call during teleopPeriodic()
   public void swerveDrive(Double RSX, Double RSY, Double RST, Double RSZ, Double LSZ) {
     // Need to set the gyro angle to a variable in order to invert the output
     GyroRotation2d = Gyro.getRotation2d();
