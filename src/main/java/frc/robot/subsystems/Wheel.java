@@ -29,6 +29,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.math.geometry.Translation2d;
 
 public class Wheel extends SubsystemBase {
+  // Define objects and variables
   public CANSparkMax Drive;
   public RelativeEncoder DriveEncoder;
   public SparkMaxPIDController DrivePIDController;
@@ -41,6 +42,8 @@ public class Wheel extends SubsystemBase {
   public double PrevRampedWheelSpd;
   public double RampedWheelSpd;
 
+  // Class constructor, initializes all variables
+  // Input the location of each module relative to the center of the robot
   public Wheel(double ModuleLocationX, double ModuleLocationY) {
     Location = new Translation2d(ModuleLocationX, ModuleLocationY);
     DistToPos = 0.0;
@@ -49,26 +52,26 @@ public class Wheel extends SubsystemBase {
     RampedWheelSpd = 0.0;
   }
 
+  // Define what the objects "SteerEncoder" and "SteerPIDController" refer to, and initialize them
   public void initEncodersAndPIDControllers() {
+    // Define what encoder the object "SteerEncoder" refers to
     SteerEncoder = Steer.getEncoder(SparkMaxRelativeEncoder.Type.kQuadrature, 28);
     //SteerEncoder = Steer.getAnalog(SparkMaxAnalogSensor.AnalogMode.kAbsolute);
-    DriveEncoder = Drive.getEncoder(SparkMaxRelativeEncoder.Type.kHallSensor, 42);
 
     // Zero relative encoders, just in case
     SteerEncoder.setPosition(0);
-    DriveEncoder.setPosition(0);
 
     // Purposefully set high to make PID controllers more accurate. If changed, the EncoderPosMod must be changed too. 
     //SteerEncoder.setPositionConversionFactor(50);
     
+    // Define what PIDController the object "SteerPIDController" refers to
     SteerPIDController = Steer.getPIDController();
-    DrivePIDController = Drive.getPIDController();
 
     // Set max and min values to be sent to the motors by the PID controllers. Likely shouldn't be changed.
     SteerPIDController.setOutputRange(-1, 1);
-    DrivePIDController.setOutputRange(-1, 1);
   }
 
+  // Set the P, I, and D values for the "SteerPIDController" object
   public void setPIDValues(Double P, Double I, Double D) {
     SteerPIDController.setP(P);
     SteerPIDController.setI(I);
