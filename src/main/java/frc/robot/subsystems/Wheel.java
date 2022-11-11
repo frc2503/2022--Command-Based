@@ -28,6 +28,9 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.math.geometry.Translation2d;
 
+/**
+This class defines objects and variables for each wheel module
+*/
 public class Wheel extends SubsystemBase {
   // Define objects and variables
   public CANSparkMax Drive;
@@ -42,7 +45,7 @@ public class Wheel extends SubsystemBase {
   public double PrevRampedWheelSpd;
   public double RampedWheelSpd;
 
-  // Class constructor, initializes all variables
+  // Class constructor, initializes all variables for the created object
   // Input the location of each module relative to the center of the robot
   public Wheel(double ModuleLocationX, double ModuleLocationY) {
     Location = new Translation2d(ModuleLocationX, ModuleLocationY);
