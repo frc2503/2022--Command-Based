@@ -28,9 +28,7 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.math.geometry.Translation2d;
 
-/**
-This class defines objects and variables for each wheel module
-*/
+// This class defines objects and variables for each wheel module
 public class Wheel extends SubsystemBase {
   // Define objects and variables
   public CANSparkMax Drive;
