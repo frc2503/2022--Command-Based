@@ -66,10 +66,10 @@ public class SwerveDrive extends SubsystemBase {
   // Class constructor, initializes all objects and variables for the created object
   public SwerveDrive() {
     // Create objects for the Wheel class, and define locations of wheel modules compared to robot center, which doesn't really matter unless base is MUCH longer on one side
-    FrontRight = new Wheel(0.381, -0.381);
-    FrontLeft = new Wheel(0.381, 0.381);
-    BackLeft = new Wheel(-0.381, -0.381);
-    BackRight = new Wheel(-0.381, 0.381);
+    FrontRight = new Wheel(0.355, -0.381);
+    FrontLeft = new Wheel(0.355, 0.381);
+    BackLeft = new Wheel(-0.355, -0.381);
+    BackRight = new Wheel(-0.355, 0.381);
 
     // Create a ChassisSpeeds object, which we later pass our desired speeds into to get our wheel speeds and angles
     Speeds = new ChassisSpeeds();
