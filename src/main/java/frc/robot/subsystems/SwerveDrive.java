@@ -84,7 +84,7 @@ public class SwerveDrive extends SubsystemBase {
     
     // Pass in wheel module locations, as well as initial robot angle and position for field oriented drive
     // The robot position is unused for now, but might be utilized in autonomous later
-    Odometry = new SwerveDriveOdometry(Kinematics, Gyro.getRotation2d(), new Pose2d(0, 0, Gyro.getRotation2d()));
+    Odometry = new SwerveDriveOdometry(Kinematics, Gyro.getRotation2d(), new Pose2d(0, 0, new Rotation2d()));
     
     /**
     Number to modify the encoders' output value.

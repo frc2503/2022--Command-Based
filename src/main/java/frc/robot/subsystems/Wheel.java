@@ -55,20 +55,25 @@ public class Wheel extends SubsystemBase {
 
   // Define what the objects "SteerEncoder" and "SteerPIDController" refer to, and initialize them
   public void initEncodersAndPIDControllers() {
-    // Define what encoder the object "SteerEncoder" refers to
+    // Define what encoder the objects "SteerEncoder" and "DriveEncoder" refer to
+    DriveEncoder = Drive.getEncoder(SparkMaxRelativeEncoder.Type.kHallSensor, 42);
     SteerEncoder = Steer.getEncoder(SparkMaxRelativeEncoder.Type.kQuadrature, 28);
     //SteerEncoder = Steer.getAnalog(SparkMaxAnalogSensor.AnalogMode.kAbsolute);
 
     // Zero relative encoders, just in case
+    DriveEncoder.setPosition(0);
     SteerEncoder.setPosition(0);
 
     // Purposefully set high to make PID controllers more accurate. If changed, the EncoderPosMod must be changed too. 
     //SteerEncoder.setPositionConversionFactor(50);
     
-    // Define what PIDController the object "SteerPIDController" refers to
+    // Define what PID controllers the objects "SteerPIDController" and "DrivePIDController" refer to
+    DrivePIDController = Drive.getPIDController();
     SteerPIDController = Steer.getPIDController();
 
+
     // Set max and min values to be sent to the motors by the PID controllers. Likely shouldn't be changed.
+    DrivePIDController.setOutputRange(-1, 1);
     SteerPIDController.setOutputRange(-1, 1);
   }
 
