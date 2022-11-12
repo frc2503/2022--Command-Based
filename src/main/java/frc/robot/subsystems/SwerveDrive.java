@@ -100,6 +100,7 @@ public class SwerveDrive extends SubsystemBase {
   }
 
   // Assign motor controllers their CAN numbers, and call the initEncodersAndPIDControllers() method for each wheel module
+  // Pass in the Spark Max CAN bus numbers
   // Call during robotInit().
   public void initMotorControllers(Integer FRD, Integer FRS, Integer FLD, Integer FLS, Integer BLD, Integer BLS, Integer BRD, Integer BRS) {
     FrontRight.Drive = new CANSparkMax(FRD, MotorType.kBrushless);
@@ -117,7 +118,8 @@ public class SwerveDrive extends SubsystemBase {
     BackRight.initEncodersAndPIDControllers();
   }
 
-  // Call the setPIDValues() method for each wheel module, pass in the desired P, I, and D values
+  // Call the setPIDValues() method for each wheel module
+  // Pass in the desired P, I, and D values
   // Call during robotInit(), after initMotorControllers().
   public void setPID(Double P, Double I, Double D) {
     FrontRight.setPIDValues(P, I, D);
@@ -160,29 +162,11 @@ public class SwerveDrive extends SubsystemBase {
     new SwerveModuleState(BackLeft.DriveEncoder.getVelocity(), new Rotation2d(BackLeft.SteerEncoder.getPosition() / EncoderPosMod)),
     new SwerveModuleState(BackRight.DriveEncoder.getVelocity(), new Rotation2d(BackRight.SteerEncoder.getPosition() / EncoderPosMod)));
     
-    // Do math for swerve drive that is identical between all wheel modules
+    // Do math for swerve drive that is identical between all wheel modules, and then send the angle and speed to the wheels
     // See Wheel.java for full explanations
-    FrontRight.swerveDriveMath(EncoderPosMod, DriveRampValue);
-    FrontLeft.swerveDriveMath(EncoderPosMod, DriveRampValue);
-    BackLeft.swerveDriveMath(EncoderPosMod, DriveRampValue);
-    BackRight.swerveDriveMath(EncoderPosMod, DriveRampValue);
-    
-    // Tell the steer motors to turn the wheels to the correct position
-    // An issue is created by ramping which this if statement solves, I will explain the roots of the problem, and the solution here:
-    // If all inputs for robot speeds are 0, the angle for the wheels will default to 0
-    // This causes a problem because the drive wheel speed does not instantly go to zero, causing the robot's direction to change
-    // This if statement fixes this issue by only changing the angle of the wheels if any of the desired robot speeds are greater than 0
-    if ((Math.abs(X) + Math.abs(Y) + Math.abs(Spin)) != 0) {
-      FrontRight.SteerPIDController.setReference(((FrontRight.ModuleState.angle.getDegrees() / 360.0) * EncoderPosMod), ControlType.kPosition);
-      FrontLeft.SteerPIDController.setReference(((FrontLeft.ModuleState.angle.getDegrees() / 360.0) * EncoderPosMod), ControlType.kPosition);
-      BackLeft.SteerPIDController.setReference(((BackLeft.ModuleState.angle.getDegrees() / 360.0) * EncoderPosMod), ControlType.kPosition);
-      BackRight.SteerPIDController.setReference(((BackRight.ModuleState.angle.getDegrees() / 360.0) * EncoderPosMod), ControlType.kPosition);
-    }
-    
-    // Tell the drive motors to drive the wheels at the correct speed
-    FrontRight.Drive.set(FrontRight.RampedWheelSpd);
-    FrontLeft.Drive.set(FrontLeft.RampedWheelSpd);
-    BackLeft.Drive.set(BackLeft.RampedWheelSpd);
-    BackRight.Drive.set(BackRight.RampedWheelSpd);
+    FrontRight.swerveDriveSetOutputs(X, Y, Spin, EncoderPosMod, DriveRampValue);
+    FrontLeft.swerveDriveSetOutputs(X, Y, Spin, EncoderPosMod, DriveRampValue);
+    BackLeft.swerveDriveSetOutputs(X, Y, Spin, EncoderPosMod, DriveRampValue);
+    BackRight.swerveDriveSetOutputs(X, Y, Spin, EncoderPosMod, DriveRampValue);
   }
 }
