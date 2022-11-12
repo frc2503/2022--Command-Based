@@ -166,38 +166,38 @@ public class SwerveDrive extends SubsystemBase {
     var backRightOptimized = SwerveModuleState.optimize(backRight, new Rotation2d((BackRight.SteerEncoder.getPosition() / EncoderPosMod)));
 
     // Find the differance between the desired wheel angle and the current wheel angle
-    FrontRight.DistToPos = ((Math.abs((FrontRight.SteerEncoder.getPosition() / EncoderPosMod) - ((frontRightOptimized.angle.getDegrees() / 360.0)))));
-    FrontLeft.DistToPos = ((Math.abs((FrontLeft.SteerEncoder.getPosition() / EncoderPosMod) - ((frontLeftOptimized.angle.getDegrees() / 360.0)))));
-    BackLeft.DistToPos = ((Math.abs((BackLeft.SteerEncoder.getPosition() / EncoderPosMod) - ((backLeftOptimized.angle.getDegrees() / 360.0)))));
-    BackRight.DistToPos = ((Math.abs((BackRight.SteerEncoder.getPosition() / EncoderPosMod) - ((backRightOptimized.angle.getDegrees() / 360.0)))));
+    FrontRight.DiffToAng = ((Math.abs((FrontRight.SteerEncoder.getPosition() / EncoderPosMod) - ((frontRightOptimized.angle.getDegrees() / 360.0)))));
+    FrontLeft.DiffToAng = ((Math.abs((FrontLeft.SteerEncoder.getPosition() / EncoderPosMod) - ((frontLeftOptimized.angle.getDegrees() / 360.0)))));
+    BackLeft.DiffToAng = ((Math.abs((BackLeft.SteerEncoder.getPosition() / EncoderPosMod) - ((backLeftOptimized.angle.getDegrees() / 360.0)))));
+    BackRight.DiffToAng = ((Math.abs((BackRight.SteerEncoder.getPosition() / EncoderPosMod) - ((backRightOptimized.angle.getDegrees() / 360.0)))));
 
     // Math to make the modifier 1 when the current wheel angle is the same as the desired wheel angle, and 0 at the furthest point away.
     // Original value is multiplied by 4 because, due to angle optimization, the max value the DistToPos variable should be able to reach is .25
-    FrontRight.DistToPos = (1 - (4 * FrontRight.DistToPos));
-    FrontLeft.DistToPos = (1 - (4 * FrontLeft.DistToPos));
-    BackLeft.DistToPos = (1 - (4 * BackLeft.DistToPos));
-    BackRight.DistToPos = (1 - (4 * BackRight.DistToPos));
+    FrontRight.DiffToAng = (1 - (4 * FrontRight.DiffToAng));
+    FrontLeft.DiffToAng = (1 - (4 * FrontLeft.DiffToAng));
+    BackLeft.DiffToAng = (1 - (4 * BackLeft.DiffToAng));
+    BackRight.DiffToAng = (1 - (4 * BackRight.DiffToAng));
     
     // Make absolutely sure the DistToPos variable is greater than or equal to 0, jsut in case the code does something dumb
-    if (FrontRight.DistToPos < 0) {
-      FrontRight.DistToPos = 0;
+    if (FrontRight.DiffToAng < 0) {
+      FrontRight.DiffToAng = 0;
     }
-    if (FrontLeft.DistToPos < 0) {
-      FrontLeft.DistToPos = 0;
+    if (FrontLeft.DiffToAng < 0) {
+      FrontLeft.DiffToAng = 0;
     }
-    if (BackLeft.DistToPos < 0) {
-      BackLeft.DistToPos = 0;
+    if (BackLeft.DiffToAng < 0) {
+      BackLeft.DiffToAng = 0;
     }
-    if (BackRight.DistToPos < 0) {
-      BackRight.DistToPos = 0;
+    if (BackRight.DiffToAng < 0) {
+      BackRight.DiffToAng = 0;
     }
 
     // Use the DistToPos variable to create a DistSpdMod variable
     // Used to ramp speed up to the desired speed exponentially as the wheel gets closer to the desired angle
-    FrontRight.DistSpdMod = Math.pow(FrontRight.DistToPos, 5);
-    FrontLeft.DistSpdMod = Math.pow(FrontLeft.DistToPos, 5);
-    BackLeft.DistSpdMod = Math.pow(BackLeft.DistToPos, 5);
-    BackRight.DistSpdMod = Math.pow(BackRight.DistToPos, 5);
+    FrontRight.AngSpdMod = Math.pow(FrontRight.DiffToAng, 5);
+    FrontLeft.AngSpdMod = Math.pow(FrontLeft.DiffToAng, 5);
+    BackLeft.AngSpdMod = Math.pow(BackLeft.DiffToAng, 5);
+    BackRight.AngSpdMod = Math.pow(BackRight.DiffToAng, 5);
     
     // Set the PrevRampedWheelSpd variable to the speed the motors were set to the last time the code was run
     FrontRight.PrevRampedWheelSpd = FrontRight.RampedWheelSpd;
@@ -207,10 +207,10 @@ public class SwerveDrive extends SubsystemBase {
     
     // Set the RampedWheelSpd variable to the desired wheel speed
     // This is done so the speed is still set even if the following if statements return false
-    FrontRight.RampedWheelSpd = ((frontRightOptimized.speedMetersPerSecond / 2) * FrontRight.DistSpdMod);
-    FrontLeft.RampedWheelSpd = ((frontLeftOptimized.speedMetersPerSecond / 2) * FrontLeft.DistSpdMod);
-    BackLeft.RampedWheelSpd = ((backLeftOptimized.speedMetersPerSecond / 2) * BackLeft.DistSpdMod);
-    BackRight.RampedWheelSpd = ((backRightOptimized.speedMetersPerSecond / 2) * BackRight.DistSpdMod);
+    FrontRight.RampedWheelSpd = ((frontRightOptimized.speedMetersPerSecond / 2) * FrontRight.AngSpdMod);
+    FrontLeft.RampedWheelSpd = ((frontLeftOptimized.speedMetersPerSecond / 2) * FrontLeft.AngSpdMod);
+    BackLeft.RampedWheelSpd = ((backLeftOptimized.speedMetersPerSecond / 2) * BackLeft.AngSpdMod);
+    BackRight.RampedWheelSpd = ((backRightOptimized.speedMetersPerSecond / 2) * BackRight.AngSpdMod);
     
     // Determine if the difference in current speed and desired speed is greater than the maximum desired difference (the DriveRampValue variable)
     // If the difference is greater than the maximum desired difference, then find out if the change is greater than or less than zero

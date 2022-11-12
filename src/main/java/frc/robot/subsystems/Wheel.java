@@ -38,8 +38,8 @@ public class Wheel extends SubsystemBase {
   public RelativeEncoder SteerEncoder;
   public SparkMaxPIDController SteerPIDController;
   public Translation2d Location;
-  public double DistToPos;
-  public double DistSpdMod;
+  public double DiffToAng;
+  public double AngSpdMod;
   public double PrevRampedWheelSpd;
   public double RampedWheelSpd;
 
@@ -47,8 +47,8 @@ public class Wheel extends SubsystemBase {
   // Input the location of each module relative to the center of the robot
   public Wheel(double ModuleLocationX, double ModuleLocationY) {
     Location = new Translation2d(ModuleLocationX, ModuleLocationY);
-    DistToPos = 0.0;
-    DistSpdMod = 0.0;
+    DiffToAng = 0.0;
+    AngSpdMod = 0.0;
     PrevRampedWheelSpd = 0.0;
     RampedWheelSpd = 0.0;
   }
