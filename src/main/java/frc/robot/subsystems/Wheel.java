@@ -26,7 +26,9 @@ import com.revrobotics.SparkMaxPIDController;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
 
 // This class defines objects and variables for each wheel module
 public class Wheel extends SubsystemBase {
@@ -38,6 +40,7 @@ public class Wheel extends SubsystemBase {
   public RelativeEncoder SteerEncoder;
   public SparkMaxPIDController SteerPIDController;
   public Translation2d Location;
+  public SwerveModuleState ModuleState;
   public double DiffToAng;
   public double AngSpdMod;
   public double PrevRampedWheelSpd;
@@ -82,5 +85,47 @@ public class Wheel extends SubsystemBase {
     SteerPIDController.setP(P);
     SteerPIDController.setI(I);
     SteerPIDController.setD(D);
+  }
+
+  // Do swerve drive math that each wheel has to call, pass in EncoderPosMod and DriveRampValue variables
+  public void swerveDriveMath(double EncoderPosMod, double DriveRampValue) {
+    // Optimize rotation positions, so the wheels don't turn 180 degrees rather than just spinning the drive motor backwards
+    ModuleState = SwerveModuleState.optimize(ModuleState, new Rotation2d((SteerEncoder.getPosition() / EncoderPosMod)));
+
+    // Find the differance between the desired wheel angle and the current wheel angle
+    DiffToAng = ((Math.abs((SteerEncoder.getPosition() / EncoderPosMod) - ((ModuleState.angle.getDegrees() / 360.0)))));
+    
+    // Math to make the modifier 1 when the current wheel angle is the same as the desired wheel angle, and 0 at the furthest point away.
+    // Original value is multiplied by 4 because, due to angle optimization, the max value the DistToPos variable should be able to reach is .25
+    DiffToAng = (1 - (4 * DiffToAng));
+    
+    // Make absolutely sure the DistToPos variable is greater than or equal to 0, jsut in case the code does something dumb
+    if (DiffToAng < 0) {
+      DiffToAng = 0;
+    }
+
+    // Use the DistToPos variable to create a DistSpdMod variable
+    // Used to ramp speed up to the desired speed exponentially as the wheel gets closer to the desired angle
+    AngSpdMod = Math.pow(DiffToAng, 5);
+    
+    // Set the PrevRampedWheelSpd variable to the speed the motors were set to the last time the code was run
+    PrevRampedWheelSpd = RampedWheelSpd;
+    
+    // Set the RampedWheelSpd variable to the desired wheel speed
+    // This is done so the speed is still set even if the following if statements return false
+    RampedWheelSpd = ((ModuleState.speedMetersPerSecond / 2) * AngSpdMod);
+  
+    // Determine if the difference in current speed and desired speed is greater than the maximum desired difference (the DriveRampValue variable)
+    // If the difference is greater than the maximum desired difference, then find out if the change is greater than or less than zero
+    // If the change is greater than zero, then add the maximum desired difference to the previous speed and set that to the new desired speed
+    // If the change is less than zero, then subtract the maximum desired difference from the previous speed and set that to the new desired speed
+    if (Math.abs(RampedWheelSpd - PrevRampedWheelSpd) > DriveRampValue) {
+      if ((RampedWheelSpd - PrevRampedWheelSpd) > 0) {
+        RampedWheelSpd = (PrevRampedWheelSpd + DriveRampValue);
+      }
+      if ((RampedWheelSpd - PrevRampedWheelSpd) < 0) {
+        RampedWheelSpd = (PrevRampedWheelSpd - DriveRampValue);
+      }
+    }
   }
 }
