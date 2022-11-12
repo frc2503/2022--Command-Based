@@ -94,7 +94,7 @@ public class SwerveDrive extends SubsystemBase {
     */
     EncoderPosMod = (59.0 + (1.0/6.0));
 
-    // Amount the drive speed can increas or decrease by, max value of 1, min value of 0
+    // Amount the drive speed can increase or decrease by, max value of 1, min value of 0
     // Purposefully set very low because of how quickly the code runs
     DriveRampValue = .02;
   }
