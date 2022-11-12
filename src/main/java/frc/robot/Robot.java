@@ -63,21 +63,29 @@ public class Robot extends TimedRobot {
 
   @Override
   public void robotInit() {
+    // Start gatting video from Limelight
     CameraServer.startAutomaticCapture();
+    
+    // Assign joysticks to the "LeftStick" and "RightStick" objects
     LeftStick = new Joystick(1);
     RightStick = new Joystick(2);
+
+    // Create an object for the SwerveDrive class
     SwerveDrive = new SwerveDrive();
+
+    // Call SwerveDrive methods, their descriptions are in the SwerveDrive.java file
     SwerveDrive.initMotorControllers(1, 5, 2, 6, 3, 7, 4, 8);
     SwerveDrive.setPID(1.0, 0.0, 0.0);
   }
 
   @Override
   public void teleopPeriodic() {
+    // Assign stick inputs to variables, to prevent discrepancies
     RightStickX = RightStick.getX();
     RightStickY = RightStick.getY();
     RightStickTwist = RightStick.getRawAxis(3);
 
-    // Deadzones
+    // Create deadzones on the joysticks, to prevent stick drift
     if (Math.abs(RightStickX) < 0.1) {
       RightStickX = 0.0;
     }
@@ -88,6 +96,7 @@ public class Robot extends TimedRobot {
       RightStickTwist = 0.0;
     }
 
+    // Call swerveDrive() method, to do all the math and outputs for swerve drive
     SwerveDrive.swerveDrive(RightStickX, (RightStickY * -1), RightStickTwist, (1 - ((RightStick.getZ() + 1) / 2)), (1 - ((LeftStick.getZ() + 1) / 2)));
   }
 
