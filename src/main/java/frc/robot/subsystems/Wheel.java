@@ -47,7 +47,7 @@ public class Wheel extends SubsystemBase {
   public double RampedWheelSpd;
 
   // Class constructor, initializes all variables for the created object
-  // Input the location of each module relative to the center of the robot
+  // Pass in the location of each module relative to the center of the robot
   public Wheel(double ModuleLocationX, double ModuleLocationY) {
     Location = new Translation2d(ModuleLocationX, ModuleLocationY);
     DiffToAng = 0.0;
@@ -87,8 +87,9 @@ public class Wheel extends SubsystemBase {
     SteerPIDController.setD(D);
   }
 
-  // Do swerve drive math that each wheel has to call, pass in EncoderPosMod and DriveRampValue variables
-  public void swerveDriveMath(double EncoderPosMod, double DriveRampValue) {
+  // Do swerve drive math that each wheel has to call, and then output the desired angle and speed to the wheel
+  // Pass in stick inputs, EncoderPosMod, and DriveRampValue variables
+  public void swerveDriveSetOutputs(double X, double Y, double Spin, double EncoderPosMod, double DriveRampValue) {
     // Optimize rotation positions, so the wheels don't turn 180 degrees rather than just spinning the drive motor backwards
     ModuleState = SwerveModuleState.optimize(ModuleState, new Rotation2d((SteerEncoder.getPosition() / EncoderPosMod)));
 
@@ -127,5 +128,17 @@ public class Wheel extends SubsystemBase {
         RampedWheelSpd = (PrevRampedWheelSpd - DriveRampValue);
       }
     }
+     
+    // Tell the steer motor to turn the wheel to the correct position
+    // An issue is created by ramping which this if statement solves, I will explain the roots of the problem, and the solution here:
+    // If all inputs for robot speeds are 0, the angle for the wheel will default to 0
+    // This causes a problem because the drive wheel speed does not instantly go to zero, causing the robot's direction to change
+    // This if statement fixes this issue by only changing the angle of the wheel if and only if any of the desired robot speeds are greater than 0
+    if ((Math.abs(X) + Math.abs(Y) + Math.abs(Spin)) != 0) {
+      SteerPIDController.setReference(((ModuleState.angle.getDegrees() / 360.0) * EncoderPosMod), ControlType.kPosition);
+    }
+    
+    // Tell the drive motor to drive the wheels at the correct speed
+    Drive.set(RampedWheelSpd);
   }
 }
