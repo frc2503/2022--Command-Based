@@ -55,7 +55,8 @@ public class SwerveDrive extends SubsystemBase {
   private double EncoderPosMod;
   private double DriveRampValue;
 
-  ChassisSpeeds Speeds;
+  private ChassisSpeeds Speeds;
+  private SwerveModuleState[] ModuleStates;
 
   public Wheel FrontRight;
   public Wheel FrontLeft;
@@ -65,10 +66,10 @@ public class SwerveDrive extends SubsystemBase {
   // Class constructor, initializes all objects and variables for the created object
   public SwerveDrive() {
     // Create objects for the Wheel class, and define locations of wheel modules compared to robot center, which doesn't really matter unless base is MUCH longer on one side
-    FrontRight = new Wheel(0.381, -0.381);
-    FrontLeft = new Wheel(0.381, 0.381);
-    BackLeft = new Wheel(-0.381, -0.381);
-    BackRight = new Wheel(-0.381, 0.381);
+    FrontRight = new Wheel(0.355, -0.381);
+    FrontLeft = new Wheel(0.355, 0.381);
+    BackLeft = new Wheel(-0.355, -0.381);
+    BackRight = new Wheel(-0.355, 0.381);
 
     // Create a ChassisSpeeds object, which we later pass our desired speeds into to get our wheel speeds and angles
     Speeds = new ChassisSpeeds();
@@ -93,12 +94,13 @@ public class SwerveDrive extends SubsystemBase {
     */
     EncoderPosMod = (59.0 + (1.0/6.0));
 
-    // Amount the drive speed can increas or decrease by, max value of 1, min value of 0
+    // Amount the drive speed can increase or decrease by, max value of 1, min value of 0
     // Purposefully set very low because of how quickly the code runs
     DriveRampValue = .02;
   }
 
   // Assign motor controllers their CAN numbers, and call the initEncodersAndPIDControllers() method for each wheel module
+  // Pass in the Spark Max CAN bus numbers
   // Call during robotInit().
   public void initMotorControllers(Integer FRD, Integer FRS, Integer FLD, Integer FLS, Integer BLD, Integer BLS, Integer BRD, Integer BRS) {
     FrontRight.Drive = new CANSparkMax(FRD, MotorType.kBrushless);
@@ -116,7 +118,8 @@ public class SwerveDrive extends SubsystemBase {
     BackRight.initEncodersAndPIDControllers();
   }
 
-  // Call the setPIDValues() method for each wheel module, pass in the desired P, I, and D values
+  // Call the setPIDValues() method for each wheel module
+  // Pass in the desired P, I, and D values
   // Call during robotInit(), after initMotorControllers().
   public void setPID(Double P, Double I, Double D) {
     FrontRight.setPIDValues(P, I, D);
@@ -137,19 +140,19 @@ public class SwerveDrive extends SubsystemBase {
     Speeds = ChassisSpeeds.fromFieldRelativeSpeeds((Y * XYMod), (X * XYMod), (Spin * SpinMod), GyroRotation2d.unaryMinus());
 
     // Convert overall robot speeds and angle into speeds and angles for each wheel module, referred to as module states
-    SwerveModuleState[] ModuleStates = Kinematics.toSwerveModuleStates(Speeds);
+    ModuleStates = Kinematics.toSwerveModuleStates(Speeds);
 
     // Front left module state
-    SwerveModuleState frontLeft = ModuleStates[0];
+    FrontLeft.ModuleState = ModuleStates[0];
 
     // Front right module state
-    SwerveModuleState frontRight = ModuleStates[1];
+    FrontRight.ModuleState = ModuleStates[1];
 
     // Back left module state
-    SwerveModuleState backLeft = ModuleStates[2];
+    BackLeft.ModuleState = ModuleStates[2];
 
     // Back right module state
-    SwerveModuleState backRight = ModuleStates[3];
+    BackRight.ModuleState = ModuleStates[3];
 
     // Update Odometry, so the robot knows its position on the field
     // This section currently only exists so we can use odometry, which solves many other issues, however it will likely be useful for autonomous movement.
@@ -159,112 +162,11 @@ public class SwerveDrive extends SubsystemBase {
     new SwerveModuleState(BackLeft.DriveEncoder.getVelocity(), new Rotation2d(BackLeft.SteerEncoder.getPosition() / EncoderPosMod)),
     new SwerveModuleState(BackRight.DriveEncoder.getVelocity(), new Rotation2d(BackRight.SteerEncoder.getPosition() / EncoderPosMod)));
     
-    // Optimize rotation positions, so the wheels don't turn 180 degrees rather than just spinning the drive motor backwards
-    var frontLeftOptimized = SwerveModuleState.optimize(frontLeft, new Rotation2d((FrontLeft.SteerEncoder.getPosition() / EncoderPosMod)));
-    var frontRightOptimized = SwerveModuleState.optimize(frontRight, new Rotation2d((FrontRight.SteerEncoder.getPosition() / EncoderPosMod)));
-    var backLeftOptimized = SwerveModuleState.optimize(backLeft, new Rotation2d((BackLeft.SteerEncoder.getPosition() / EncoderPosMod)));
-    var backRightOptimized = SwerveModuleState.optimize(backRight, new Rotation2d((BackRight.SteerEncoder.getPosition() / EncoderPosMod)));
-
-    // Find the differance between the desired wheel angle and the current wheel angle
-    FrontRight.DiffToAng = ((Math.abs((FrontRight.SteerEncoder.getPosition() / EncoderPosMod) - ((frontRightOptimized.angle.getDegrees() / 360.0)))));
-    FrontLeft.DiffToAng = ((Math.abs((FrontLeft.SteerEncoder.getPosition() / EncoderPosMod) - ((frontLeftOptimized.angle.getDegrees() / 360.0)))));
-    BackLeft.DiffToAng = ((Math.abs((BackLeft.SteerEncoder.getPosition() / EncoderPosMod) - ((backLeftOptimized.angle.getDegrees() / 360.0)))));
-    BackRight.DiffToAng = ((Math.abs((BackRight.SteerEncoder.getPosition() / EncoderPosMod) - ((backRightOptimized.angle.getDegrees() / 360.0)))));
-
-    // Math to make the modifier 1 when the current wheel angle is the same as the desired wheel angle, and 0 at the furthest point away.
-    // Original value is multiplied by 4 because, due to angle optimization, the max value the DistToPos variable should be able to reach is .25
-    FrontRight.DiffToAng = (1 - (4 * FrontRight.DiffToAng));
-    FrontLeft.DiffToAng = (1 - (4 * FrontLeft.DiffToAng));
-    BackLeft.DiffToAng = (1 - (4 * BackLeft.DiffToAng));
-    BackRight.DiffToAng = (1 - (4 * BackRight.DiffToAng));
-    
-    // Make absolutely sure the DistToPos variable is greater than or equal to 0, jsut in case the code does something dumb
-    if (FrontRight.DiffToAng < 0) {
-      FrontRight.DiffToAng = 0;
-    }
-    if (FrontLeft.DiffToAng < 0) {
-      FrontLeft.DiffToAng = 0;
-    }
-    if (BackLeft.DiffToAng < 0) {
-      BackLeft.DiffToAng = 0;
-    }
-    if (BackRight.DiffToAng < 0) {
-      BackRight.DiffToAng = 0;
-    }
-
-    // Use the DistToPos variable to create a DistSpdMod variable
-    // Used to ramp speed up to the desired speed exponentially as the wheel gets closer to the desired angle
-    FrontRight.AngSpdMod = Math.pow(FrontRight.DiffToAng, 5);
-    FrontLeft.AngSpdMod = Math.pow(FrontLeft.DiffToAng, 5);
-    BackLeft.AngSpdMod = Math.pow(BackLeft.DiffToAng, 5);
-    BackRight.AngSpdMod = Math.pow(BackRight.DiffToAng, 5);
-    
-    // Set the PrevRampedWheelSpd variable to the speed the motors were set to the last time the code was run
-    FrontRight.PrevRampedWheelSpd = FrontRight.RampedWheelSpd;
-    FrontLeft.PrevRampedWheelSpd = FrontLeft.RampedWheelSpd;
-    BackLeft.PrevRampedWheelSpd = BackLeft.RampedWheelSpd;
-    BackRight.PrevRampedWheelSpd = BackRight.RampedWheelSpd;
-    
-    // Set the RampedWheelSpd variable to the desired wheel speed
-    // This is done so the speed is still set even if the following if statements return false
-    FrontRight.RampedWheelSpd = ((frontRightOptimized.speedMetersPerSecond / 2) * FrontRight.AngSpdMod);
-    FrontLeft.RampedWheelSpd = ((frontLeftOptimized.speedMetersPerSecond / 2) * FrontLeft.AngSpdMod);
-    BackLeft.RampedWheelSpd = ((backLeftOptimized.speedMetersPerSecond / 2) * BackLeft.AngSpdMod);
-    BackRight.RampedWheelSpd = ((backRightOptimized.speedMetersPerSecond / 2) * BackRight.AngSpdMod);
-    
-    // Determine if the difference in current speed and desired speed is greater than the maximum desired difference (the DriveRampValue variable)
-    // If the difference is greater than the maximum desired difference, then find out if the change is greater than or less than zero
-    // If the change is greater than zero, then add the maximum desired difference to the previous speed and set that to the new desired speed
-    // If the change is less than zero, then subtract the maximum desired difference from the previous speed and set that to the new desired speed
-    if (Math.abs(FrontRight.RampedWheelSpd - FrontRight.PrevRampedWheelSpd) > DriveRampValue) {
-      if ((FrontRight.RampedWheelSpd - FrontRight.PrevRampedWheelSpd) > 0) {
-        FrontRight.RampedWheelSpd = (FrontRight.PrevRampedWheelSpd + DriveRampValue);
-      }
-      if ((FrontRight.RampedWheelSpd - FrontRight.PrevRampedWheelSpd) < 0) {
-        FrontRight.RampedWheelSpd = (FrontRight.PrevRampedWheelSpd - DriveRampValue);
-      }
-    }
-    if (Math.abs(FrontLeft.RampedWheelSpd - FrontLeft.PrevRampedWheelSpd) > DriveRampValue) {
-      if ((FrontLeft.RampedWheelSpd - FrontLeft.PrevRampedWheelSpd) > 0) {
-        FrontLeft.RampedWheelSpd = (FrontLeft.PrevRampedWheelSpd + DriveRampValue);
-      }
-      if ((FrontLeft.RampedWheelSpd - FrontLeft.PrevRampedWheelSpd) < 0) {
-        FrontLeft.RampedWheelSpd = (FrontLeft.PrevRampedWheelSpd - DriveRampValue);
-      }
-    }
-    if (Math.abs(BackLeft.RampedWheelSpd - BackLeft.PrevRampedWheelSpd) > DriveRampValue) {
-      if ((BackLeft.RampedWheelSpd - BackLeft.PrevRampedWheelSpd) > 0) {
-        BackLeft.RampedWheelSpd = (BackLeft.PrevRampedWheelSpd + DriveRampValue);
-      }
-      if ((BackLeft.RampedWheelSpd - BackLeft.PrevRampedWheelSpd) < 0) {
-        BackLeft.RampedWheelSpd = (BackLeft.PrevRampedWheelSpd - DriveRampValue);
-      }
-    }
-    if (Math.abs(BackRight.RampedWheelSpd - BackRight.PrevRampedWheelSpd) > DriveRampValue) {
-      if ((BackRight.RampedWheelSpd - BackRight.PrevRampedWheelSpd) > 0) {
-        BackRight.RampedWheelSpd = (BackRight.PrevRampedWheelSpd + DriveRampValue);
-      }
-      if ((BackRight.RampedWheelSpd - BackRight.PrevRampedWheelSpd) < 0) {
-        BackRight.RampedWheelSpd = (BackRight.PrevRampedWheelSpd - DriveRampValue);
-      }
-    }
-
-    // Tell the steer motors to turn the wheels to the correct position
-    // An issue is created by ramping which this if statement solves, I will explain the roots of the problem, and the solution here:
-    // If all inputs for robot speeds are 0, the angle for the wheels will default to 0
-    // This causes a problem because the drive wheel speed does not instantly go to zero, causing the robot's direction to change
-    // This if statement fixes this issue by only changing the angle of the wheels if any of the desired robot speeds are greater than 0
-    if ((Math.abs(X) + Math.abs(Y) + Math.abs(Spin)) != 0) {
-      FrontRight.SteerPIDController.setReference(((frontRightOptimized.angle.getDegrees() / 360.0) * EncoderPosMod), ControlType.kPosition);
-      FrontLeft.SteerPIDController.setReference(((frontLeftOptimized.angle.getDegrees() / 360.0) * EncoderPosMod), ControlType.kPosition);
-      BackLeft.SteerPIDController.setReference(((backLeftOptimized.angle.getDegrees() / 360.0) * EncoderPosMod), ControlType.kPosition);
-      BackRight.SteerPIDController.setReference(((backRightOptimized.angle.getDegrees() / 360.0) * EncoderPosMod), ControlType.kPosition);
-    }
-    
-    // Tell the drive motors to drive the wheels at the correct speed
-    FrontRight.Drive.set(FrontRight.RampedWheelSpd);
-    FrontLeft.Drive.set(FrontLeft.RampedWheelSpd);
-    BackLeft.Drive.set(BackLeft.RampedWheelSpd);
-    BackRight.Drive.set(BackRight.RampedWheelSpd);
+    // Do math for swerve drive that is identical between all wheel modules, and then send the angle and speed to the wheels
+    // See Wheel.java for full explanations
+    FrontRight.swerveDriveSetOutputs(X, Y, Spin, EncoderPosMod, DriveRampValue);
+    FrontLeft.swerveDriveSetOutputs(X, Y, Spin, EncoderPosMod, DriveRampValue);
+    BackLeft.swerveDriveSetOutputs(X, Y, Spin, EncoderPosMod, DriveRampValue);
+    BackRight.swerveDriveSetOutputs(X, Y, Spin, EncoderPosMod, DriveRampValue);
   }
 }
