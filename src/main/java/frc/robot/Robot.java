@@ -63,7 +63,7 @@ public class Robot extends TimedRobot {
 
   @Override
   public void robotInit() {
-    // Start gatting video from Limelight
+    // Start getting video from Limelight
     CameraServer.startAutomaticCapture();
     
     // Assign joysticks to the "LeftStick" and "RightStick" objects
