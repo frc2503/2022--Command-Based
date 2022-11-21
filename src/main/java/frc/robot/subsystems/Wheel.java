@@ -16,6 +16,7 @@ import com.revrobotics.SparkMaxPIDController;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
+import com.ctre.phoenix.motorcontrol.NeutralMode;
 
 // This class defines objects and variables for each wheel module
 public class Wheel extends SubsystemBase {
@@ -57,6 +58,11 @@ public class Wheel extends SubsystemBase {
 	 * Define what the objects "SteerEncoder" and "SteerPIDController" refer to, and initialize them
 	 */
   public void initEncodersAndPIDControllers() {
+    // Make the steer motors not move when there isn't an input
+    Steer.setNeutralMode(NeutralMode.Brake);
+
+    Steer.configClosedloopRamp(0);
+
     // Tell the Steer motor controller that an encoder exists, and what kind it is
     Steer.configSelectedFeedbackSensor(FeedbackDevice.Analog, 0, 0);
 
@@ -198,14 +204,16 @@ public class Wheel extends SubsystemBase {
     }
      
     // Tell the steer motor to turn the wheel to the correct position
-    // An issue is created by ramping which this if statement solves, I will explain the roots of the problem, and the solution here:
+    // An issue is created by ramping which this if statement solves, I will explain the root of the problem, and the solution here:
     // If all inputs for robot speeds are 0, the angle for the wheel will default to 0
     // This causes a problem because the drive wheel speed does not instantly go to zero, causing the robot's direction to change
     // This if statement fixes this issue by only changing the angle of the wheel if and only if any of the desired robot speeds are greater than 0
     if ((Math.abs(X) + Math.abs(Y) + Math.abs(Spin)) != 0) {
         Steer.set(ControlMode.Position, ((ModuleState.angle.getDegrees() / 360.0) * EncoderPosMod));
     }
-    
+
+    //Steer.set(ControlMode.Position, 0);
+
     // Tell the drive motor to drive the wheels at the correct speed
     Drive.set(RampedWheelSpd);
   }
