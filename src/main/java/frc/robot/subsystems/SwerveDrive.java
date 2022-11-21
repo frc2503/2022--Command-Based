@@ -184,8 +184,5 @@ public class SwerveDrive extends SubsystemBase {
     FrontLeft.swerveDriveSetOutputs(X, Y, Spin, EncoderPosMod, DriveRampValue);
     BackLeft.swerveDriveSetOutputs(X, Y, Spin, EncoderPosMod, DriveRampValue);
     BackRight.swerveDriveSetOutputs(X, Y, Spin, EncoderPosMod, DriveRampValue);
-
-    System.out.println((BackRight.ModuleState.angle.getDegrees() / 360.0) * EncoderPosMod);
-    System.out.println(BackRight.Steer.getSelectedSensorPosition());
   }
 }
