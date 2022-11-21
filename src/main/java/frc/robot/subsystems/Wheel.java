@@ -209,11 +209,9 @@ public class Wheel extends SubsystemBase {
     // This causes a problem because the drive wheel speed does not instantly go to zero, causing the robot's direction to change
     // This if statement fixes this issue by only changing the angle of the wheel if and only if any of the desired robot speeds are greater than 0
     if ((Math.abs(X) + Math.abs(Y) + Math.abs(Spin)) != 0) {
-        Steer.set(ControlMode.Position, ((ModuleState.angle.getDegrees() / 360.0) * EncoderPosMod));
+      Steer.set(ControlMode.Position, ((ModuleState.angle.getDegrees() / 360.0) * EncoderPosMod));
     }
-
-    //Steer.set(ControlMode.Position, 0);
-
+	  
     // Tell the drive motor to drive the wheels at the correct speed
     Drive.set(RampedWheelSpd);
   }
