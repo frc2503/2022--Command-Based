@@ -26,15 +26,15 @@ public class Robot extends TimedRobot {
     CameraServer.startAutomaticCapture();
     
     // Assign joysticks to the "LeftStick" and "RightStick" objects
-    LeftStick = new Joystick(1);
-    RightStick = new Joystick(2);
+    LeftStick = new Joystick(0);
+    RightStick = new Joystick(1);
 
     // Create an object for the SwerveDrive class
     SwerveDrive = new SwerveDrive();
 
     // Call SwerveDrive methods, their descriptions are in the SwerveDrive.java file
     SwerveDrive.initMotorControllers(1, 5, 2, 6, 3, 7, 4, 8);
-    SwerveDrive.setPID(1.0, 0.0, 0.0);
+    SwerveDrive.setPID(8.0, 0.01, 0.01);
   }
 
   @Override
