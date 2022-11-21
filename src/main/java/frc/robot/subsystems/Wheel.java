@@ -113,7 +113,7 @@ public class Wheel extends SubsystemBase {
     SteerFullRotations = Math.floor(SteerAngRot);
 
     // Invert the angle, so wpilib's math has a good input
-    SteerAngRad = ((2 * Math.PI) - ((2 * Math.PI) * (SteerAngRot - SteerFullRotations)));
+    SteerAngRad = ((2 * Math.PI) - ((2 * Math.PI) * (SteerAngRot % 1)));
   }
 
   /**
