@@ -24,6 +24,9 @@ public class Wheel extends SubsystemBase {
   public RelativeEncoder DriveEncoder;
   public SparkMaxPIDController DrivePIDController;
   public TalonSRX Steer;
+  public double SteerAngRot;
+  public double SteerAngRad;
+  public double SteerFullRotations;
   public Translation2d Location;
   public SwerveModuleState ModuleState;
   public double DiffToAng;
@@ -41,6 +44,9 @@ public class Wheel extends SubsystemBase {
 	 */
   public Wheel(double ModuleLocationX, double ModuleLocationY) {
     Location = new Translation2d(ModuleLocationX, ModuleLocationY);
+    SteerAngRot = 0.0;
+    SteerAngRad = 0.0;
+    SteerFullRotations = 0.0;
     DiffToAng = 0.0;
     AngSpdMod = 0.0;
     PrevRampedWheelSpd = 0.0;
@@ -88,6 +94,23 @@ public class Wheel extends SubsystemBase {
   }
 
   /**
+   * Do math and set multiple variables required to make the absolute encoders function properly
+   * 
+   * @param EncoderPosMod
+	 *            The value output by the encoders when at one full rotation
+   */
+  public void setEncoderVariables(double EncoderPosMod) {
+    // Convert the raw encoder output into a unit of rotations
+    SteerAngRot = (Steer.getSelectedSensorPosition() / EncoderPosMod);
+
+    // Get the number of full rotations the wheel has gone through
+    SteerFullRotations = Math.floor(SteerAngRot);
+
+    // Invert the angle, so wpilib's math has a good input
+    SteerAngRad = ((2 * Math.PI) - ((2 * Math.PI) * (SteerAngRot % 1)));
+  }
+
+  /**
    * Do math for the swerve drive that each wheel has to call, and then output the desired angle and speed to the wheel
    * 
    * @param X
@@ -103,16 +126,49 @@ public class Wheel extends SubsystemBase {
    */
   public void swerveDriveSetOutputs(double X, double Y, double Spin, double EncoderPosMod, double DriveRampValue) {
     // Optimize rotation positions, so the wheels don't turn 180 degrees rather than just spinning the drive motor backwards
-    ModuleState = SwerveModuleState.optimize(ModuleState, new Rotation2d((Steer.getSelectedSensorPosition() / EncoderPosMod)));
+    // Determine if the distance between the desired angle and the current angle is less than or equal to 90
+    // This is to determine whether the drive motors should be driven forward or backward.
+    // If the difference between the desired and current positions is less than or equal to 90 degrees, then...
+    if ((Math.abs(ModuleState.angle.getRadians() - SteerAngRad) <= (Math.PI / 2)) || (Math.abs(ModuleState.angle.getRadians() - SteerAngRad) >= ((3 * Math.PI) / 2))) {
+      // If the wheel would have to cross into a new rotation to travel the shortest distance to the desired angle, then...
+      if (Math.abs(ModuleState.angle.getRadians() - SteerAngRad) >= ((3 * Math.PI) / 2)) {
+        // If the difference is positive, then...
+        if (ModuleState.angle.getRadians() > SteerAngRad) {
+          // Subtract 2pi from the desired angle to show the PID controller later that the shortest distance is to cross 0
+          ModuleState = new SwerveModuleState(ModuleState.speedMetersPerSecond, new Rotation2d(ModuleState.angle.getRadians() - (2 * Math.PI)));
+        }
+        // If the difference is negative, then...
+        else {
+          // Add 2pi to the desired angle to show the PID controller later that the shortest distance is to cross 2pi
+          ModuleState = new SwerveModuleState(ModuleState.speedMetersPerSecond, new Rotation2d(ModuleState.angle.getRadians() + (2 * Math.PI)));
+        }
+      }
+    }
+    // If the difference between the desired and current positions is greater than 90 degrees, then...
+    else {
+      // If the difference is positive, then...
+      if (ModuleState.angle.getRadians() > SteerAngRad) {
+        // Invert the Drive motor output, and flip the desired angle by subtracting pi
+        ModuleState = new SwerveModuleState(-ModuleState.speedMetersPerSecond, new Rotation2d(ModuleState.angle.getRadians() - Math.PI));
+      }
+      // If the difference is negative, then...
+      else {
+        // Invert the Drive motor output, and flip the desired angle by adding pi
+        ModuleState = new SwerveModuleState(-ModuleState.speedMetersPerSecond, new Rotation2d(ModuleState.angle.getRadians() + Math.PI));
+      }
+    }
+
+    // Re-invert the angle, so the PID controller has a good input
+    ModuleState = new SwerveModuleState(ModuleState.speedMetersPerSecond, new Rotation2d(((2 * Math.PI) - ModuleState.angle.getRadians()) + (SteerFullRotations * (2 * Math.PI))));
 
     // Find the differance between the desired wheel angle and the current wheel angle
-    DiffToAng = ((Math.abs((Steer.getSelectedSensorPosition() / EncoderPosMod) - ((ModuleState.angle.getDegrees() / 360.0)))));
+    DiffToAng = Math.abs(SteerAngRot - (ModuleState.angle.getRadians() / (2 * Math.PI)));
     
     // Math to make the modifier 1 when the current wheel angle is the same as the desired wheel angle, and 0 at the furthest point away.
     // Original value is multiplied by 4 because, due to angle optimization, the max value the DistToPos variable should be able to reach is .25
     DiffToAng = (1 - (4 * DiffToAng));
     
-    // Make absolutely sure the DistToPos variable is greater than or equal to 0, jsut in case the code does something dumb
+    // Make absolutely sure the DistToPos variable is greater than or equal to 0, just in case the code does something dumb
     if (DiffToAng < 0) {
       DiffToAng = 0;
     }
@@ -136,7 +192,7 @@ public class Wheel extends SubsystemBase {
       if ((RampedWheelSpd - PrevRampedWheelSpd) > 0) {
         RampedWheelSpd = (PrevRampedWheelSpd + DriveRampValue);
       }
-      if ((RampedWheelSpd - PrevRampedWheelSpd) < 0) {
+      else {
         RampedWheelSpd = (PrevRampedWheelSpd - DriveRampValue);
       }
     }
@@ -147,7 +203,7 @@ public class Wheel extends SubsystemBase {
     // This causes a problem because the drive wheel speed does not instantly go to zero, causing the robot's direction to change
     // This if statement fixes this issue by only changing the angle of the wheel if and only if any of the desired robot speeds are greater than 0
     if ((Math.abs(X) + Math.abs(Y) + Math.abs(Spin)) != 0) {
-      Steer.set(ControlMode.Position, ((ModuleState.angle.getDegrees() / 360.0) * EncoderPosMod));
+        Steer.set(ControlMode.Position, ((ModuleState.angle.getDegrees() / 360.0) * EncoderPosMod));
     }
     
     // Tell the drive motor to drive the wheels at the correct speed

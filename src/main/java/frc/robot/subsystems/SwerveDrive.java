@@ -67,9 +67,9 @@ public class SwerveDrive extends SubsystemBase {
     // The robot position is unused for now, but might be utilized in autonomous later
     Odometry = new SwerveDriveOdometry(Kinematics, Gyro.getRotation2d(), new Pose2d(0, 0, new Rotation2d()));
     
-    // Number to modify the encoders' output values.
+    // The value output by the encoders when at one full rotation
     // Used to get all angle values to the same scale for calculations
-    EncoderPosMod = 1023;
+    EncoderPosMod = 1024;
 
     // Amount the drive speed can increase or decrease by, max value of 1, min value of 0
     // Purposefully set very low because of how quickly the code runs
@@ -165,13 +165,19 @@ public class SwerveDrive extends SubsystemBase {
     // Back right module state
     BackRight.ModuleState = ModuleStates[3];
 
+    // Do math to get multiple variables out of the encoder position
+    FrontLeft.setEncoderVariables(EncoderPosMod);
+    FrontRight.setEncoderVariables(EncoderPosMod);
+    BackLeft.setEncoderVariables(EncoderPosMod);
+    BackRight.setEncoderVariables(EncoderPosMod);
+
     // Update Odometry, so the robot knows its position on the field
     // This section currently only exists so we can use odometry, which solves many other issues, however it will likely be useful for autonomous movement.
     Odometry.update(GyroRotation2d.unaryMinus(),
-    new SwerveModuleState(FrontLeft.DriveEncoder.getVelocity(), new Rotation2d(FrontLeft.Steer.getSelectedSensorPosition() / EncoderPosMod)),
-    new SwerveModuleState(FrontRight.DriveEncoder.getVelocity(), new Rotation2d(FrontRight.Steer.getSelectedSensorPosition() / EncoderPosMod)),
-    new SwerveModuleState(BackLeft.DriveEncoder.getVelocity(), new Rotation2d(BackLeft.Steer.getSelectedSensorPosition() / EncoderPosMod)),
-    new SwerveModuleState(BackRight.DriveEncoder.getVelocity(), new Rotation2d(BackRight.Steer.getSelectedSensorPosition() / EncoderPosMod)));
+    new SwerveModuleState(FrontLeft.DriveEncoder.getVelocity(), new Rotation2d(FrontLeft.SteerAngRad)),
+    new SwerveModuleState(FrontRight.DriveEncoder.getVelocity(), new Rotation2d(FrontRight.SteerAngRad)),
+    new SwerveModuleState(BackLeft.DriveEncoder.getVelocity(), new Rotation2d(BackLeft.SteerAngRad)),
+    new SwerveModuleState(BackRight.DriveEncoder.getVelocity(), new Rotation2d(BackRight.SteerAngRad)));
     
     // Do math for swerve drive that is identical between all wheel modules, and then send the angle and speed to the wheels
     FrontRight.swerveDriveSetOutputs(X, Y, Spin, EncoderPosMod, DriveRampValue);
