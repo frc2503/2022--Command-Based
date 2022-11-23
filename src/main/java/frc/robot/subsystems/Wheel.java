@@ -211,7 +211,7 @@ public class Wheel extends SubsystemBase {
     if ((Math.abs(X) + Math.abs(Y) + Math.abs(Spin)) != 0) {
         Steer.set(ControlMode.Position, ((ModuleState.angle.getDegrees() / 360.0) * EncoderPosMod));
     }
-    
+
     // Tell the drive motor to drive the wheels at the correct speed
     Drive.set(RampedWheelSpd);
   }
