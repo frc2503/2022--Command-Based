@@ -57,10 +57,6 @@ public class Robot extends TimedRobot {
 
     // Call swerveDrive() method, to do all the math and outputs for swerve drive
     SwerveDrive.swerveDrive(RightStickX, (RightStickY * -1), RightStickTwist, (1 - ((RightStick.getZ() + 1) / 2)), (1 - ((LeftStick.getZ() + 1) / 2)));
-
-    System.out.println(SwerveDrive.FrontRight.Steer.getSelectedSensorPosition());
-    System.out.println((SwerveDrive.FrontRight.SteerAngRad / (2 * Math.PI)) * 360);
-    System.out.println(SwerveDrive.FrontRight.WhichCodeIsRunning);
   }
 
   //Autonomous right away%
