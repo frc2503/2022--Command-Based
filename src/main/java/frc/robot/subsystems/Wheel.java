@@ -34,6 +34,8 @@ public class Wheel extends SubsystemBase {
   public double AngSpdMod;
   public double PrevRampedWheelSpd;
   public double RampedWheelSpd;
+  public int EncoderIsNegative;
+  public int WhichCodeIsRunning;
 
   /**
 	 * Class constructor for the Wheel class, initializes all variables, objects, and methods for the created Wheel object
@@ -52,6 +54,7 @@ public class Wheel extends SubsystemBase {
     AngSpdMod = 0.0;
     PrevRampedWheelSpd = 0.0;
     RampedWheelSpd = 0.0;
+    WhichCodeIsRunning = 0;
   }
 
   /**
@@ -113,7 +116,7 @@ public class Wheel extends SubsystemBase {
     SteerFullRotations = Math.floor(SteerAngRot);
 
     // Invert the angle, so wpilib's math has a good input
-    SteerAngRad = ((2 * Math.PI) - ((2 * Math.PI) * (SteerAngRot % 1)));
+    SteerAngRad = ((2 * Math.PI) - ((2 * Math.PI) * (SteerAngRot - SteerFullRotations)));
   }
 
   /**
@@ -142,13 +145,18 @@ public class Wheel extends SubsystemBase {
         if (ModuleState.angle.getRadians() > SteerAngRad) {
           // Subtract 2pi from the desired angle to show the PID controller later that the shortest distance is to cross 0
           ModuleState = new SwerveModuleState(ModuleState.speedMetersPerSecond, new Rotation2d(ModuleState.angle.getRadians() - (2 * Math.PI)));
+
+          WhichCodeIsRunning = 1;
         }
         // If the difference is negative, then...
         else {
           // Add 2pi to the desired angle to show the PID controller later that the shortest distance is to cross 2pi
           ModuleState = new SwerveModuleState(ModuleState.speedMetersPerSecond, new Rotation2d(ModuleState.angle.getRadians() + (2 * Math.PI)));
+
+          WhichCodeIsRunning = 2;
         }
       }
+
     }
     // If the difference between the desired and current positions is greater than 90 degrees, then...
     else {
@@ -156,11 +164,15 @@ public class Wheel extends SubsystemBase {
       if (ModuleState.angle.getRadians() > SteerAngRad) {
         // Invert the Drive motor output, and flip the desired angle by subtracting pi
         ModuleState = new SwerveModuleState(-ModuleState.speedMetersPerSecond, new Rotation2d(ModuleState.angle.getRadians() - Math.PI));
+
+        WhichCodeIsRunning = 3;
       }
       // If the difference is negative, then...
       else {
         // Invert the Drive motor output, and flip the desired angle by adding pi
         ModuleState = new SwerveModuleState(-ModuleState.speedMetersPerSecond, new Rotation2d(ModuleState.angle.getRadians() + Math.PI));
+
+        WhichCodeIsRunning = 4;
       }
     }
 

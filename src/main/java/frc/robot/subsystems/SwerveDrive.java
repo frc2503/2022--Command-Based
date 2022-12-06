@@ -30,7 +30,7 @@ public class SwerveDrive extends SubsystemBase {
   private SwerveDriveKinematics Kinematics;
   private SwerveDriveOdometry Odometry;
 
-  private double EncoderPosMod;
+  public double EncoderPosMod;
   private double DriveRampValue;
 
   private ChassisSpeeds Speeds;
@@ -73,7 +73,7 @@ public class SwerveDrive extends SubsystemBase {
 
     // Amount the drive speed can increase or decrease by, max value of 1, min value of 0
     // Purposefully set very low because of how quickly the code runs
-    DriveRampValue = .02;
+    DriveRampValue = .025;
   }
 
   /**

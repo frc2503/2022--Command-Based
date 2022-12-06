@@ -7,11 +7,14 @@ package frc.robot.subsystems;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Autonomous extends SubsystemBase {
-  /** Creates a new Autonomous. */
-  public Autonomous() {}
+  public Tracking Limelight;
+  public SwerveDrive SwerveDrive;
+  public Autonomous() {
+    Limelight = new Tracking();
+  }
 
   @Override
   public void periodic() {
-    // This method will be called once per scheduler run
+
   }
 }

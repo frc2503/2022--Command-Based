@@ -27,9 +27,4 @@ public class Tracking extends SubsystemBase {
     TargetArea = Table.getEntry("ta");
     TargetSkew = Table.getEntry("ts");
   }
-
-  @Override
-  public void periodic() {
-    
-  }
 }
