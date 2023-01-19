@@ -184,22 +184,6 @@ public class Wheel extends SubsystemBase {
     // Re-invert the angle, so the PID controller has a good input
     ModuleState = new SwerveModuleState(ModuleState.speedMetersPerSecond, new Rotation2d(((2 * Math.PI) - ModuleState.angle.getRadians()) + (SteerFullRotations * (2 * Math.PI))));
 
-    // Find the differance between the desired wheel angle and the current wheel angle
-    DiffToAng = Math.abs(SteerAngRot - (ModuleState.angle.getRadians() / (2 * Math.PI)));
-    
-    // Math to make the modifier 1 when the current wheel angle is the same as the desired wheel angle, and 0 at the furthest point away.
-    // Original value is multiplied by 4 because, due to angle optimization, the max value the DistToPos variable should be able to reach is .25
-    DiffToAng = (1 - (4 * DiffToAng));
-    
-    // Make absolutely sure the DistToPos variable is greater than or equal to 0, just in case the code does something dumb
-    if (DiffToAng < 0) {
-      DiffToAng = 0;
-    }
-
-    // Use the DistToPos variable to create a DistSpdMod variable
-    // Used to ramp speed up to the desired speed exponentially as the wheel gets closer to the desired angle
-    AngSpdMod = Math.pow(DiffToAng, 5);
-
     // Check if any input is being sent, to prevent wheels from rotating to 0 when no input. 
     if (ModuleState.speedMetersPerSecond != 0) {
       IsInput = true;
@@ -222,7 +206,7 @@ public class Wheel extends SubsystemBase {
     //Steer.set(ControlMode.Position, 0);
 
     // Tell the drive motor to drive the wheels at the correct speed
-    DrivePIDController.setReference(((((ModuleState.speedMetersPerSecond / ((4 / 39.37) * Math.PI)) * 60) / .15) * AngSpdMod), ControlType.kVelocity);
-    System.out.println(((((ModuleState.speedMetersPerSecond / ((4 / 39.37) * Math.PI)) * 60) / .15) * AngSpdMod));
+    DrivePIDController.setReference((((ModuleState.speedMetersPerSecond / ((4 / 39.37) * Math.PI)) * 60) / .15), ControlType.kVelocity);
+    System.out.println((((ModuleState.speedMetersPerSecond / ((4 / 39.37) * Math.PI)) * 60) / .15));
   }
 }
