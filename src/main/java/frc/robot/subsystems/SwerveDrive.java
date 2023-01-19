@@ -4,7 +4,7 @@
 
 package frc.robot.subsystems;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj.I2C;
+import edu.wpi.first.wpilibj.SerialPort;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -24,11 +24,11 @@ Mostly exists to prevent people from accidentally messing the code up
 */
 public class SwerveDrive extends SubsystemBase {
   // Define all objects and varibles used by this class
-  private AHRS Gyro;
-  private Rotation2d GyroRotation2d;
+  public AHRS Gyro;
+  public Rotation2d GyroRotation2d;
 
-  private SwerveDriveKinematics Kinematics;
-  private SwerveDriveOdometry Odometry;
+  public SwerveDriveKinematics Kinematics;
+  public SwerveDriveOdometry Odometry;
 
   public double EncoderPosMod;
   private double DriveRampValue;
@@ -55,7 +55,7 @@ public class SwerveDrive extends SubsystemBase {
     Speeds = new ChassisSpeeds();
     
     // Initialize and zero gyro
-    Gyro = new AHRS(I2C.Port.kMXP);
+    Gyro = new AHRS(SerialPort.Port.kMXP);
     Gyro.calibrate();
     Gyro.reset();
     
@@ -73,7 +73,7 @@ public class SwerveDrive extends SubsystemBase {
 
     // Amount the drive speed can increase or decrease by, max value of 1, min value of 0
     // Purposefully set very low because of how quickly the code runs
-    DriveRampValue = .025;
+    DriveRampValue = .05;
   }
 
   /**
@@ -115,18 +115,26 @@ public class SwerveDrive extends SubsystemBase {
   /**
    * Call the setPIDValues() method for each wheel module
    * 
-   * @param P
-	 *            Proportional value
-   * @param I
-	 *            Integral value
-   * @param D
-	 *            Derivative value
+   * @param DFF
+   *            Drive Feed-Forward value
+   * @param DP
+	 *            Drive Proportional value
+   * @param DI
+	 *            Drive Integral value
+   * @param DD
+	 *            Drive Derivative value
+   * @param SP
+	 *            Steer Proportional value
+   * @param SI
+	 *            Steer Integral value
+   * @param SD
+	 *            Steer Derivative value
    */
-  public void setPID(Double P, Double I, Double D) {
-    FrontRight.setPIDValues(P, I, D);
-    FrontLeft.setPIDValues(P, I, D);
-    BackLeft.setPIDValues(P, I, D);
-    BackRight.setPIDValues(P, I, D);
+  public void setPID(Double DFF, Double DP, Double DI, Double DD, Double SP, Double SI, Double SD) {
+    FrontRight.setPIDValues(DFF, DP, DI, DD, SP, SI, SD);
+    FrontLeft.setPIDValues(DFF, DP, DI, DD, SP, SI, SD);
+    BackLeft.setPIDValues(DFF, DP, DI, DD, SP, SI, SD);
+    BackRight.setPIDValues(DFF, DP, DI, DD, SP, SI, SD);
   }
 
   /**
@@ -180,9 +188,24 @@ public class SwerveDrive extends SubsystemBase {
     new SwerveModuleState(BackRight.DriveEncoder.getVelocity(), new Rotation2d(BackRight.SteerAngRad)));
     
     // Do math for swerve drive that is identical between all wheel modules, and then send the angle and speed to the wheels
-    FrontRight.swerveDriveSetOutputs(X, Y, Spin, EncoderPosMod, DriveRampValue);
-    FrontLeft.swerveDriveSetOutputs(X, Y, Spin, EncoderPosMod, DriveRampValue);
-    BackLeft.swerveDriveSetOutputs(X, Y, Spin, EncoderPosMod, DriveRampValue);
-    BackRight.swerveDriveSetOutputs(X, Y, Spin, EncoderPosMod, DriveRampValue);
+    FrontRight.optimizeAndCalculateVariables(DriveRampValue);
+    FrontLeft.optimizeAndCalculateVariables(DriveRampValue);
+    BackLeft.optimizeAndCalculateVariables(DriveRampValue);
+    BackRight.optimizeAndCalculateVariables(DriveRampValue);
+  }
+
+  public void setSwerveOutputs() {
+    FrontRight.setOutputs(EncoderPosMod);
+    FrontLeft.setOutputs(EncoderPosMod);
+    BackLeft.setOutputs(EncoderPosMod);
+    BackRight.setOutputs(EncoderPosMod);
+  }
+
+  public Pose2d getPose() {
+    return Odometry.getPoseMeters();
+  }
+
+  public SwerveModuleState[] getModuleStates(SwerveModuleState[] ModuleStates) {
+    return ModuleStates;
   }
 }

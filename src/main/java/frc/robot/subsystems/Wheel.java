@@ -10,6 +10,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.SparkMaxRelativeEncoder;
+import com.revrobotics.CANSparkMax.ControlType;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkMaxPIDController;
 
@@ -35,7 +36,7 @@ public class Wheel extends SubsystemBase {
   public double PrevRampedWheelSpd;
   public double RampedWheelSpd;
   public int EncoderIsNegative;
-  public int WhichCodeIsRunning;
+  public boolean IsInput;
 
   /**
 	 * Class constructor for the Wheel class, initializes all variables, objects, and methods for the created Wheel object
@@ -54,7 +55,7 @@ public class Wheel extends SubsystemBase {
     AngSpdMod = 0.0;
     PrevRampedWheelSpd = 0.0;
     RampedWheelSpd = 0.0;
-    WhichCodeIsRunning = 0;
+    IsInput = false;
   }
 
   /**
@@ -71,12 +72,15 @@ public class Wheel extends SubsystemBase {
 
     // Define what encoder the object "DriveEncoder" refers to
     DriveEncoder = Drive.getEncoder(SparkMaxRelativeEncoder.Type.kHallSensor, 42);
-
+    
     // Zero relative encoders, just in case
     DriveEncoder.setPosition(0);
     
     // Define what PID controller the object "DrivePIDController" refers to
     DrivePIDController = Drive.getPIDController();
+    
+    // Tell the PID controller what encoder to use
+    DrivePIDController.setFeedbackDevice(DriveEncoder);
 
     // Set max and min values to be sent to the motors by the PID controllers. Likely shouldn't be changed.
     Steer.configClosedLoopPeakOutput(0, 1);
@@ -86,20 +90,29 @@ public class Wheel extends SubsystemBase {
   /**
    * Set the P, I, and D values for the PID controllers
    * 
-   * @param P
-	 *            Proportional value
-   * @param I
-	 *            Integral value
-   * @param D
-	 *            Derivative value
+   * @param DFF
+   *            Drive Feed-Forward value
+   * @param DP
+	 *            Drive Proportional value
+   * @param DI
+	 *            Drive Integral value
+   * @param DD
+	 *            Drive Derivative value
+   * @param SP
+	 *            Steer Proportional value
+   * @param SI
+	 *            Steer Integral value
+   * @param SD
+	 *            Steer Derivative value
    */
-  public void setPIDValues(Double P, Double I, Double D) {
-    Steer.config_kP(0, P);
-    Steer.config_kI(0, I);
-    Steer.config_kD(0, D);
-    DrivePIDController.setP(P);
-    DrivePIDController.setI(I);
-    DrivePIDController.setD(D);
+  public void setPIDValues(Double DFF, Double DP, Double DI, Double DD, Double SP, Double SI, Double SD) {
+    DrivePIDController.setFF(DFF);
+    DrivePIDController.setP(DP);
+    DrivePIDController.setI(DI);
+    DrivePIDController.setD(DD);
+    Steer.config_kP(0, SP);
+    Steer.config_kI(0, SI);
+    Steer.config_kD(0, SD);
   }
 
   /**
@@ -133,7 +146,7 @@ public class Wheel extends SubsystemBase {
    * @param DriveRampValue
 	 *            Amount the drive speed can increase or decrease by, max value of 2, min value of 0
    */
-  public void swerveDriveSetOutputs(double X, double Y, double Spin, double EncoderPosMod, double DriveRampValue) {
+  public void optimizeAndCalculateVariables(double DriveRampValue) {
     // Optimize rotation positions, so the wheels don't turn 180 degrees rather than just spinning the drive motor backwards
     // Determine if the distance between the desired angle and the current angle is less than or equal to 90
     // This is to determine whether the drive motors should be driven forward or backward.
@@ -145,15 +158,11 @@ public class Wheel extends SubsystemBase {
         if (ModuleState.angle.getRadians() > SteerAngRad) {
           // Subtract 2pi from the desired angle to show the PID controller later that the shortest distance is to cross 0
           ModuleState = new SwerveModuleState(ModuleState.speedMetersPerSecond, new Rotation2d(ModuleState.angle.getRadians() - (2 * Math.PI)));
-
-          WhichCodeIsRunning = 1;
         }
         // If the difference is negative, then...
         else {
           // Add 2pi to the desired angle to show the PID controller later that the shortest distance is to cross 2pi
           ModuleState = new SwerveModuleState(ModuleState.speedMetersPerSecond, new Rotation2d(ModuleState.angle.getRadians() + (2 * Math.PI)));
-
-          WhichCodeIsRunning = 2;
         }
       }
 
@@ -164,15 +173,11 @@ public class Wheel extends SubsystemBase {
       if (ModuleState.angle.getRadians() > SteerAngRad) {
         // Invert the Drive motor output, and flip the desired angle by subtracting pi
         ModuleState = new SwerveModuleState(-ModuleState.speedMetersPerSecond, new Rotation2d(ModuleState.angle.getRadians() - Math.PI));
-
-        WhichCodeIsRunning = 3;
       }
       // If the difference is negative, then...
       else {
         // Invert the Drive motor output, and flip the desired angle by adding pi
         ModuleState = new SwerveModuleState(-ModuleState.speedMetersPerSecond, new Rotation2d(ModuleState.angle.getRadians() + Math.PI));
-
-        WhichCodeIsRunning = 4;
       }
     }
 
@@ -194,37 +199,30 @@ public class Wheel extends SubsystemBase {
     // Use the DistToPos variable to create a DistSpdMod variable
     // Used to ramp speed up to the desired speed exponentially as the wheel gets closer to the desired angle
     AngSpdMod = Math.pow(DiffToAng, 5);
-    
-    // Set the PrevRampedWheelSpd variable to the speed the motors were set to the last time the code was run
-    PrevRampedWheelSpd = RampedWheelSpd;
-    
-    // Set the RampedWheelSpd variable to the desired wheel speed
-    // This is done so the speed is still set even if the following if statements return false
-    RampedWheelSpd = ((ModuleState.speedMetersPerSecond / 2) * AngSpdMod);
-  
-    // Determine if the difference in current speed and desired speed is greater than the maximum desired difference (the DriveRampValue variable)
-    // If the difference is greater than the maximum desired difference, then find out if the change is greater than or less than zero
-    // If the change is greater than zero, then add the maximum desired difference to the previous speed and set that to the new desired speed
-    // If the change is less than zero, then subtract the maximum desired difference from the previous speed and set that to the new desired speed
-    if (Math.abs(RampedWheelSpd - PrevRampedWheelSpd) > DriveRampValue) {
-      if ((RampedWheelSpd - PrevRampedWheelSpd) > 0) {
-        RampedWheelSpd = (PrevRampedWheelSpd + DriveRampValue);
-      }
-      else {
-        RampedWheelSpd = (PrevRampedWheelSpd - DriveRampValue);
-      }
+
+    // Check if any input is being sent, to prevent wheels from rotating to 0 when no input. 
+    if (ModuleState.speedMetersPerSecond != 0) {
+      IsInput = true;
     }
-     
+    else {
+      IsInput = false;
+    }
+  }
+
+  public void setOutputs(double EncoderPosMod) {
     // Tell the steer motor to turn the wheel to the correct position
     // An issue is created by ramping which this if statement solves, I will explain the root of the problem, and the solution here:
     // If all inputs for robot speeds are 0, the angle for the wheel will default to 0
     // This causes a problem because the drive wheel speed does not instantly go to zero, causing the robot's direction to change
     // This if statement fixes this issue by only changing the angle of the wheel if and only if any of the desired robot speeds are greater than 0
-    if ((Math.abs(X) + Math.abs(Y) + Math.abs(Spin)) != 0) {
-        Steer.set(ControlMode.Position, ((ModuleState.angle.getDegrees() / 360.0) * EncoderPosMod));
+    if (IsInput == true) {
+      Steer.set(ControlMode.Position, ((ModuleState.angle.getDegrees() / 360.0) * EncoderPosMod));
     }
 
+    //Steer.set(ControlMode.Position, 0);
+
     // Tell the drive motor to drive the wheels at the correct speed
-    Drive.set(RampedWheelSpd);
+    DrivePIDController.setReference(((((ModuleState.speedMetersPerSecond / ((4 / 39.37) * Math.PI)) * 60) / .15) * AngSpdMod), ControlType.kVelocity);
+    System.out.println(((((ModuleState.speedMetersPerSecond / ((4 / 39.37) * Math.PI)) * 60) / .15) * AngSpdMod));
   }
 }

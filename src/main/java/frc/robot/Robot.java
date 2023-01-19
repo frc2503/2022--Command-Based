@@ -7,9 +7,17 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
+import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+
+import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.networktables.*;
+import edu.wpi.first.util.sendable.Sendable;
+import edu.wpi.first.util.sendable.SendableBuilder;
 import frc.robot.subsystems.SwerveDrive;
+import frc.robot.subsystems.Tracking;
 
 public class Robot extends TimedRobot {
   // Define objects and variables
@@ -18,12 +26,19 @@ public class Robot extends TimedRobot {
   private Double RightStickX;
   private Double RightStickY;
   private Double RightStickTwist;
+  private Double[] MotorCurrents;
   public SwerveDrive SwerveDrive;
+
+  public NetworkTableInstance Inst;
+  public NetworkTable DriverStation;
+  public NetworkTableEntry GyroAng;
 
   @Override
   public void robotInit() {
-    // Start getting video from Limelight
-    //CameraServer.startAutomaticCapture();
+    // Start getting video from USB camera
+    CameraServer.startAutomaticCapture();
+    
+    Inst = NetworkTableInstance.getDefault();
     
     // Assign joysticks to the "LeftStick" and "RightStick" objects
     LeftStick = new Joystick(0);
@@ -34,7 +49,7 @@ public class Robot extends TimedRobot {
 
     // Call SwerveDrive methods, their descriptions are in the SwerveDrive.java file
     SwerveDrive.initMotorControllers(1, 5, 2, 6, 3, 7, 4, 8);
-    SwerveDrive.setPID(8.0, 0.01, 0.01);
+    SwerveDrive.setPID(0.0002, 0.0000005, 0.0, 0.0, 8.0, 0.01, 0.01);
   }
 
   @Override
@@ -56,14 +71,20 @@ public class Robot extends TimedRobot {
     }
 
     // Call swerveDrive() method, to do all the math and outputs for swerve drive
-    SwerveDrive.swerveDrive(RightStickX, (RightStickY * -1), RightStickTwist, (1 - ((RightStick.getZ() + 1) / 2)), (1 - ((LeftStick.getZ() + 1) / 2)));
+    SwerveDrive.swerveDrive(RightStickX * 3, (RightStickY * -3), (RightStickTwist * 3), (1 - ((RightStick.getZ() + 1) / 2)), (1 - ((LeftStick.getZ() + 1) / 2)));
+    SwerveDrive.setSwerveOutputs();
 
-    System.out.println(SwerveDrive.FrontRight.Steer.getSelectedSensorPosition());
-    System.out.println((SwerveDrive.FrontRight.SteerAngRad / (2 * Math.PI)) * 360);
-    System.out.println(SwerveDrive.FrontRight.WhichCodeIsRunning);
+    SmartDashboard.putNumber("Gyro", SwerveDrive.GyroRotation2d.unaryMinus().getDegrees());
+
+    MotorCurrents = new Double[] {SwerveDrive.FrontLeft.Drive.getOutputCurrent(), SwerveDrive.FrontRight.Drive.getOutputCurrent(), SwerveDrive.BackLeft.Drive.getOutputCurrent(), SwerveDrive.BackRight.Drive.getOutputCurrent()};
+    SmartDashboard.putNumberArray("RobotDrive Motors", MotorCurrents);
+  
+    if (RightStick.getRawButton(2) == true) {
+      SwerveDrive.Gyro.reset();
+    }
   }
 
-  //Autonomous right away%
+  //Autonomous right away
   @Override
   public void autonomousInit(){
   }

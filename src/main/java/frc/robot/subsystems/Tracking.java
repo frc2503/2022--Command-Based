@@ -11,7 +11,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Tracking extends SubsystemBase {
   public NetworkTableInstance Inst;
-  public NetworkTable Table;
+  public NetworkTable Limelight;
   public NetworkTableEntry HasTarget;
   public NetworkTableEntry TargetOffsetH;
   public NetworkTableEntry TargetOffsetV;
@@ -20,11 +20,11 @@ public class Tracking extends SubsystemBase {
 
   public Tracking() {
     Inst = NetworkTableInstance.getDefault();
-    Table = Inst.getTable("limelight");
-    HasTarget = Table.getEntry("tv");
-    TargetOffsetH = Table.getEntry("tx");
-    TargetOffsetV = Table.getEntry("ty");
-    TargetArea = Table.getEntry("ta");
-    TargetSkew = Table.getEntry("ts");
+    Limelight = Inst.getTable("limelight");
+    HasTarget = Limelight.getEntry("tv");
+    TargetOffsetH = Limelight.getEntry("tx");
+    TargetOffsetV = Limelight.getEntry("ty");
+    TargetArea = Limelight.getEntry("ta");
+    TargetSkew = Limelight.getEntry("ts");
   }
 }
