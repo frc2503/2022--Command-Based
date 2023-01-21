@@ -43,7 +43,7 @@ public class Robot extends TimedRobot {
 
     // Call SwerveDrive methods, their descriptions are in the SwerveDrive.java file
     SwerveDrive.initMotorControllers(1, 5, 2, 6, 3, 7, 4, 8);
-    SwerveDrive.setPID(0.0002, 0.0000005, 0.0, 0.0, 8.0, 0.01, 0.01);
+    SwerveDrive.setPID(0.000175, 0.0000007, 0.0000001, 0.0, 8.0, 0.01, 0.01);
   }
 
   @Override
@@ -65,7 +65,7 @@ public class Robot extends TimedRobot {
     }
 
     // Call swerveDrive() method, to do all the math and outputs for swerve drive
-    SwerveDrive.swerveDrive(RightStickX * 3, (RightStickY * -3), (RightStickTwist * 3), (1 - ((RightStick.getZ() + 1) / 2)), (1 - ((LeftStick.getZ() + 1) / 2)));
+    SwerveDrive.swerveDrive(RightStickX * 4, (RightStickY * -4), (RightStickTwist * 5), (1 - ((RightStick.getZ() + 1) / 2)), (1 - ((LeftStick.getZ() + 1) / 2)));
     SwerveDrive.setSwerveOutputs();
 
     SmartDashboard.putNumber("Gyro", SwerveDrive.GyroRotation2d.unaryMinus().getDegrees());

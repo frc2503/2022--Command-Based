@@ -207,6 +207,6 @@ public class Wheel extends SubsystemBase {
 
     // Tell the drive motor to drive the wheels at the correct speed
     DrivePIDController.setReference((((ModuleState.speedMetersPerSecond / ((4 / 39.37) * Math.PI)) * 60) / .15), ControlType.kVelocity);
-    System.out.println((((ModuleState.speedMetersPerSecond / ((4 / 39.37) * Math.PI)) * 60) / .15));
+    System.out.println(((DriveEncoder.getVelocity() * ((4 / 39.37) * Math.PI)) / 60) * .15);
   }
 }
